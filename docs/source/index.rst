@@ -9,15 +9,23 @@ Bem Vindos ao Circo Voador da Programação Python
 Aqui vamos ter uma introdução rápida de como programar jogos para Web usando Python.
 Na verdade vamos usar o Brython que é o Python que funciona dentro de um navegador web como o Firefox.
 
-.. image:: http://s19.postimg.org/ufgi8eztf/PPFC.jpg
+.. image:: /_static/PPFC.jpg
 
-Sumário
-=======
+Tutorial
+========
 
 .. toctree::
     :maxdepth: 2
 
     vito_a.rst
+
+Desenvolvimento
+===============
+
+.. toctree::
+    :maxdepth: 1
+
+    intro.rst
 
 Indices e Tabelas
 =================

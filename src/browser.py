@@ -19,4 +19,4 @@ document = BrythonMock()
 html = BrythonMock()
 html.DIV = MagicMock()
 html.IMG = MagicMock()
-window = MagicMock
+window = MagicMock()

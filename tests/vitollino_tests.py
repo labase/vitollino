@@ -26,7 +26,7 @@ Verifica a funcionalidade da biblioteca Vitollino.
 
 """
 import unittest
-from _spy.vitollino.vitollino import Cena
+from _spy.vitollino import Cena
 from unittest.mock import MagicMock  # , patch, ANY
 
 

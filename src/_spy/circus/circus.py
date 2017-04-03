@@ -15,37 +15,6 @@ TILEN = "ABCDEFGHIJKLMN"
 DIREN = "NLSO"
 
 
-class DesafioA:
-    ODD = False
-
-    def __init__(self, masmorra=MASMORRA, off=0):
-        self.masmorra = masmorra
-        self.off = off
-        self.odd = False
-        self.gamer = Braser(768, 640)
-        self.gamer.subscribe(self)
-        self.game = self.gamer.game
-
-    def preload(self):
-        # self.game.load.image(DETAIL, DETAILURL)
-
-        self.game.stage.backgroundColor = "#FFFFFF"
-        self.game.load.spritesheet(MONSTER, MONSTERURL, 64, 63, 16 * 12)
-        self.game.load.spritesheet(DETILE, DETAILURL, 128, 128, 12)
-
-    def create(self):
-        for i, line in enumerate(self.masmorra):
-            for j, cell in enumerate(line):
-                detail = self.game.add.sprite(self.off + 64 + j * 128, 64 + i * 128, DETILE)
-                detail.anchor.setTo(0.5, 0.5)
-                tile = cell  # MASMORRA[3*j+i]
-                detail.frame = ord(tile[0]) - ord("A")
-                detail.angle = 90 * DIREN.index(tile[1])
-
-    def update(self):
-        pass
-
-
 def desafio0(masmorra):
     return DesafioA(masmorra)
 
@@ -247,6 +216,37 @@ ROTATE_DIRS = ROTATE_DIRS[1:] + [ROTATE_DIRS[0]]
 DIRS = list("NLSO")
 shuffle(SHUFFLE_DIRS)
 ODD = False
+
+
+class DesafioA:
+    ODD = False
+
+    def __init__(self, masmorra=MASMORRA, off=0):
+        self.masmorra = masmorra
+        self.off = off
+        self.odd = False
+        self.gamer = Braser(768, 640)
+        self.gamer.subscribe(self)
+        self.game = self.gamer.game
+
+    def preload(self):
+        # self.game.load.image(DETAIL, DETAILURL)
+
+        self.game.stage.backgroundColor = "#FFFFFF"
+        self.game.load.spritesheet(MONSTER, MONSTERURL, 64, 63, 16 * 12)
+        self.game.load.spritesheet(DETILE, DETAILURL, 128, 128, 12)
+
+    def create(self):
+        for i, line in enumerate(self.masmorra):
+            for j, cell in enumerate(line):
+                detail = self.game.add.sprite(self.off + 64 + j * 128, 64 + i * 128, DETILE)
+                detail.anchor.setTo(0.5, 0.5)
+                tile = cell  # MASMORRA[3*j+i]
+                detail.frame = ord(tile[0]) - ord("A")
+                detail.angle = 90 * DIREN.index(tile[1])
+
+    def update(self):
+        pass
 
 
 def desafio3(mmap):

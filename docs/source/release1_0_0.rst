@@ -19,22 +19,22 @@ Aspectos do Lançamento
 Destaques dos Aspectos
 **********************
 
-Descritor de roteiro do game orientado a objetos
+Início da documentação do tutorial
 
 Aspecto #1
 **********
 
-Terminadores e Produções são classes
+Incorpora documentação do Vitollino
 
 Melhoramentos
 =============
 
-Este descritor permite o uso de diversos cenários.
+Reúne Vitollino e Braser no mesmo repositório.
 
 Melhoramento #1
 ***************
 
-Cada cenário é um objeto com terminadores e produções independentes.
+Tutorial vitollino sendo portado para Restrutured Text.
 
 Consertos
 =========
@@ -46,7 +46,7 @@ Questões e Problemas Conhecidos
 
 A funcionalidade ainda é muito simples, requer melhorias.
 
-Uma nova versão deve suportar o monitoramento  da atividade dos alunos.
+Uma nova versão deve integrar melhor as duas modalidades de tutorial.
 
 Lançamentos Anteriores e Posteriores
 ====================================
