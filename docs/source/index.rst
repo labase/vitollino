@@ -3,24 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Vitollino's documentation!
-=====================================
+Bem Vindos ao Circo Voador da Programação Python
+================================================
 
-Contents:
+Aqui vamos ter uma introdução rápida de como programar jogos para Web usando Python.
+Na verdade vamos usar o Brython que é o Python que funciona dentro de um navegador web como o Firefox.
+
+.. image:: http://s19.postimg.org/ufgi8eztf/PPFC.jpg
+
+Sumário
+=======
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   intro.rst
-   release1_0_0.rst
-   modules.rst
+    vito_a.rst
 
-
-
-Indices and tables
-==================
+Indices e Tabelas
+=================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
 
