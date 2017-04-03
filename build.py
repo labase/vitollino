@@ -5,7 +5,7 @@ import sys
 SRC = os.path.join(os.path.dirname(__file__), "src")
 DOC = os.path.join(os.path.dirname(__file__), "docs")
 sys.path.append(SRC)
-from vitollino import __version__
+from _spy import __version__
 
 
 use_plugin("python.core")
