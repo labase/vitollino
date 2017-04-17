@@ -21,30 +21,62 @@ Gerador de labirintos e jogos tipo 'novel'.
 """
 from browser import document, html
 
+DOCUMENT_PYDIV_ = document["pydiv"]
+
 STYLE = {'position': "absolute", 'width': 300, 'left': 0, 'top': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
 
 
+def singleton(class_):
+    instances = {}
+
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
+    return getinstance
+
+
+@singleton
+class SalaCenaNula:
+    def __init__(self):
+        self.esquerda, self.direita = [None] * 2
+        self.salas = [None] * 5
+        self.cenas = [None] * 4
+        self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
+
+    def _init(self):
+        self._init = lambda _=0, s=self: self
+        self.esquerda, self.direita = [SalaCenaNula()] * 2
+        self.salas = [SalaCenaNula()] * 5
+        self.cenas = [SalaCenaNula()] * 4
+        self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
+        return self
+
+    def vai(self):
+        pass
+
+NADA = SalaCenaNula()._init()
+
+
 class Labirinto:
     def __init__(self, salas):
+        salas = [s or NADA for s in salas]
         self.salas = salas
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
         for indice, sala in enumerate(self.salas[1:]):
-            self.centro.cenas[indice].meio = sala.cenas[indice]
+            self.centro.cenas[indice].sai(sala.cenas[indice])
             indice_oposto = (indice + 2) % 4
-            sala.cenas[indice_oposto].meio = self.centro.cenas[indice_oposto]
+            sala.cenas[indice_oposto].sai(self.centro.cenas[indice_oposto])
 
 
 class Sala:
     def __init__(self, imagensnlso, saidasnlso):
-        self.cenas = []
-        for img in imagensnlso:
-            self.cenas.append(Cena(img))
+        self.cenas = [Cena(img) if img else NADA for img in imagensnlso]
         self.norte, self.leste, self.sul, self.oeste = self.cenas
-        for cena, saida in enumerate(saidasnlso):
-            self.cenas[cena].meio = saida
+        [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
         for esquerda in range(4):
             cena_a_direita = (esquerda + 1) % 4
             self.cenas[esquerda].direita = self.cenas[cena_a_direita]
@@ -52,6 +84,23 @@ class Sala:
 
 
 class Cena:
+    """
+    Use para construir uma cena.
+    ::
+
+        from _spy.vitollino import Cena
+    
+        cena_esq = Cena(img="esq.jpg")
+        cena_mei = Cena(img="mei.jpg", cena_esq)
+        cena_mei.vai()
+        
+    :param str img: URL da imagem
+    :param Cena esquerda: Cena que está à esquerda desta
+    :param Cena direita: Cena que está à direita desta
+    :param Cena meio: Cena que está à frente desta
+    :param vai: Função a ser chamada no lugar da self.vai nativa
+    """
+
     def __init__(self, img=IMAGEM, esquerda=None, direita=None, meio=None, vai=None):
         self.img, self.esquerda, self.direita = img, esquerda, direita
         self.meio = meio
@@ -90,9 +139,12 @@ class Cena:
         if self.meio:
             self.meio.vai()
 
+    def sai(self, saida):
+        self.meio = saida
+
     def vai(self):
         INVENTARIO.desmonta()
-        tela = document["pydiv"]
+        tela = DOCUMENT_PYDIV_
         tela.html = ""
         tela <= self.cena
         tela <= self.divesq
@@ -103,8 +155,9 @@ class Cena:
         return self
 
 
+@singleton
 class Inventario:
-    def __init__(self, tela=document["pydiv"]):
+    def __init__(self, tela=DOCUMENT_PYDIV_):
         self.tela = tela
         self.cena = None
         self.inventario = {}
@@ -148,17 +201,17 @@ class Inventario:
         self.limbo <= item_img
 
 
-INVENTARIO = None
+INVENTARIO = Inventario()
 
 
-def virgem():
-    def cria_inventario():
-        global INVENTARIO
-        INVENTARIO = Inventario()
-
-    if not INVENTARIO:
-        cria_inventario()
-    return INVENTARIO
+# def virgem():
+#     def cria_inventario():
+#         global INVENTARIO
+#         INVENTARIO = Inventario()
+#
+#     if not INVENTARIO:
+#         cria_inventario()
+#     return INVENTARIO
 
 
 class Dropper:
@@ -289,7 +342,7 @@ def ofiuco():
     return Bloco()
 
 
-virgem()
+# virgem()
 
 if "__main__" in __name__:
     ofiuco()

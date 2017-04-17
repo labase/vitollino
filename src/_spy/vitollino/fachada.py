@@ -16,9 +16,16 @@
 #
 # Você deve ter recebido uma cópia da Licença Pública Geral GNU
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
-from .vitollino import Cena
-from .vitollino import Sala
-from .vitollino import Labirinto
-from .vitollino import INVENTARIO
-from .fachada import Jogo
-__all__ = ["vitollino"]
+"""
+Fachada para acessar a API do vitollino.
+"""
+from . import Cena, Sala, Labirinto, INVENTARIO
+
+
+class Jogo:
+    def __init__(self):
+        self.cena = Cena
+        self.sala = Sala
+        self.labirinto = Labirinto
+        self.inventario = INVENTARIO
+        pass

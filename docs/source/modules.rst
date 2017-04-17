@@ -15,10 +15,6 @@ Gerador de Labirintos
     :synopsis: Criação de jogos tipo 'novel'.
 
 
-.. seealso::
-
-   Module :mod:`vitollino_base`
-
 .. note::
    Biblioteca Cliente para Jogos.
 
@@ -30,6 +26,20 @@ Flying Circus - Jogo Phaser
 Braser
 ======
 
+.. automodule:: _spy.circus.braser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :platform: Web
+    :synopsis: Envelope orientado a objeto do Phaser.
+
+.. note::
+   Biblioteca Cliente para Jogos.
+
+
+Game
+====
+
 .. automodule:: _spy.circus.game
     :members:
     :undoc-members:
@@ -40,7 +50,7 @@ Braser
 
 .. seealso::
 
-   Module :mod:`vitollino_base`
+   Module :mod:`_spy.circus.braser`
 
 .. note::
    Biblioteca Cliente para Jogos.
@@ -59,7 +69,7 @@ Masmorra
 
 .. seealso::
 
-   Module :mod:`vitollino_base`
+   Module :mod:`_spy.circus.game`
 
 .. note::
    Biblioteca Cliente para Jogos.

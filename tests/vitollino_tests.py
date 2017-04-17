@@ -26,7 +26,7 @@ Verifica a funcionalidade da biblioteca Vitollino.
 
 """
 import unittest
-from _spy.vitollino import Cena
+from _spy.vitollino import Cena, Jogo
 from unittest.mock import MagicMock  # , patch, ANY
 
 
@@ -40,6 +40,58 @@ class CenaTest(unittest.TestCase):
         """Cena esquerda vai é chamado."""
         self.app.vai_esquerda()
         self.gui.vai.assert_called_once_with()
+
+
+class JogoTest(unittest.TestCase):
+
+    def setUp(self):
+        self.uma = MagicMock()
+        self.outra = MagicMock()
+        self.app = Jogo()
+
+    def test_esquerda(self):
+        """Cena esquerda vai é chamado."""
+        cena = self.app.cena("_IMG_", self.uma, self.outra)
+        cena.vai_esquerda()
+        self.uma.vai.assert_called_once_with()
+
+    def test_sem_esquerda(self):
+        """Cena esquerda vai nao é chamado, direita vai é chamado."""
+        cena = self.app.cena("_IMG_", None, self.outra)
+        cena.vai_esquerda()
+        self.outra.vai.assert_not_called()
+        cena.vai_direita()
+        self.outra.vai.assert_called_once_with()
+
+    def test_sem_direita(self):
+        """Cena direita vai nao é chamado, esquerda vai é chamado."""
+        cena = self.app.cena("_IMG_", self.uma)
+        cena.vai_direita()
+        self.uma.vai.assert_not_called()
+        cena.vai_esquerda()
+        self.uma.vai.assert_called_once_with()
+
+    def test_so_com_meio(self):
+        """Cena direita ou esquerda vai nao é chamado, meio vai é chamado."""
+        cena = self.app.cena("_IMG_", None, None, self.uma)
+        cena.vai_direita()
+        self.uma.vai.assert_not_called()
+        cena.vai_esquerda()
+        self.uma.vai.assert_not_called()
+        cena.vai_meio()
+        self.uma.vai.assert_called_once_with()
+
+    def test_redefine_vai(self):
+        """Cena direita, esquerda ou meio vai nao é chamado, vai é chamado."""
+        cena = self.app.cena("_IMG_", None, None, None, lambda: self.uma.vai())
+        cena.vai_direita()
+        self.uma.vai.assert_not_called()
+        cena.vai_esquerda()
+        self.uma.vai.assert_not_called()
+        cena.vai_meio()
+        self.uma.vai.assert_not_called()
+        cena.vai()
+        self.uma.vai.assert_called_once_with()
 
 
 if __name__ == '__main__':
