@@ -93,6 +93,21 @@ class JogoTest(unittest.TestCase):
         cena.vai()
         self.uma.vai.assert_called_once_with()
 
+    def test_adiciona_cenas(self):
+        """Novas cenas sao criadas e renomeadas."""
+        cena = self.app.cena(portao="_IMG_")
+        assert cena.portao, "nao criou cena portao"
+
+    def test_navega_para_cena(self):
+        """Conecta cenas e navega de uma para outra."""
+        cena = self.app.cena(portao="_IMG_", porta="_IMG_")
+        cena.porta.portal(None, self.outra)
+        assert cena.portao, "nao criou cena portao"
+        cena.porta.vai_esquerda()
+        self.outra.vai.assert_not_called()
+        cena.porta.vai_direita()
+        self.outra.vai.assert_called_once_with()
+
 
 if __name__ == '__main__':
     unittest.main()

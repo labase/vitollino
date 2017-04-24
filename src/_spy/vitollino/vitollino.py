@@ -24,6 +24,8 @@ from browser import document, html
 DOCUMENT_PYDIV_ = document["pydiv"]
 
 STYLE = {'position': "absolute", 'width': 300, 'left': 0, 'top': 0, 'background': "white"}
+PSTYLE = {'position': "absolute", 'width': 300, 'left': 0, 'bottom': 0, 'background': "white"}
+LSTYLE = {'position': "absolute", 'width': 300, 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
@@ -59,6 +61,34 @@ class SalaCenaNula:
         pass
 
 NADA = SalaCenaNula()._init()
+
+
+class Elemento:
+    limbo = html.DIV(style=LSTYLE)
+
+    def __init__(self, img="", x=0, y=0, w="10px", h="10px", tit="", alt="", act=None, tel=DOCUMENT_PYDIV_, **kwargs):
+        self.img, self.x, self.y, self.tit, self.alt = img, x, y, tit, alt
+        self.action = act if act else lambda _=0: None
+        self.tela = tel
+        self.opacity = 0
+        self.style = dict(PSTYLE)
+        self.style["min-width"], self.style["min-height"] = w, h
+        self.elt = html.DIV(Id=tit, style=self.style)
+        self.elt.onclick = self.action
+        self.tela <= self.elt
+        self.c(**kwargs)
+
+    def entra(self, cena, x=None, y=None):
+        self.elt.x, self.elt.x = x if not None else self.x, y if not None else self.y
+        cena.bota(self)
+
+    @classmethod
+    def c(cls, **kwarg):
+        return [setattr(cls, nome, Elemento(img) if isinstance(img, str) else img) for nome, img in kwarg.items()]
+
+
+class Portal(Elemento):
+    pass
 
 
 class Labirinto:
@@ -101,11 +131,13 @@ class Cena:
     :param vai: Função a ser chamada no lugar da self.vai nativa
     """
 
-    def __init__(self, img=IMAGEM, esquerda=None, direita=None, meio=None, vai=None):
-        self.img, self.esquerda, self.direita = img, esquerda, direita
-        self.meio = meio
+    def __init__(self, img=IMAGEM, nome='', esquerda=NADA, direita=NADA, meio=NADA, vai=None, **kwargs):
+        self.img = img
+        self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
+        self.portal(esquerda, direita, meio)
         self.vai = vai or self.vai
-        self.cena = html.IMG(src=self.img, width=300, style=STYLE)
+        self.cena = html.IMG(src=self.img, width=300, style=STYLE, title=nome)
+        Cena.cenas(**kwargs)
 
         self.divesq = divesq = html.DIV(style=STYLE)
         divesq.style.width = 100
@@ -123,6 +155,14 @@ class Cena:
         divdir.style.width = 100
         divdir.onclick = self.vai_direita
         divdir.style.left = 200
+
+    def portal(self, esquerda=None, direita=None, meio=None):
+        self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
+
+    @classmethod
+    def cenas(cls, **cenas):
+        for nome, imagem in cenas.items():
+            setattr(Cena, nome, Cena(imagem))
 
     def vai_direita(self, _=0):
         self.divdir.style.opacity = 0.8
@@ -156,6 +196,22 @@ class Cena:
 
 
 @singleton
+class Popup:
+    def __init__(self, tela=DOCUMENT_PYDIV_):
+        self.tela = tela
+        self.cena = None
+        self.opacity = 0
+        self.style = dict(PSTYLE)
+        self.style["min-height"] = "100px"
+        self.bolsa = html.DIV(Id="__popup__", style=self.style)
+        self.bolsa.onclick = self.mostra
+        self.limbo = html.DIV(style=self.style)
+        self.limbo.style.left = "4000px"
+        self.mostra()
+        tela <= self.bolsa
+
+
+@singleton
 class Inventario:
     def __init__(self, tela=DOCUMENT_PYDIV_):
         self.tela = tela
@@ -172,7 +228,6 @@ class Inventario:
         tela <= self.bolsa
 
     def inicia(self):
-        self.inventario = {}
         self.bolsa.html = ""
         self.cena = None
         self.opacity = 0
