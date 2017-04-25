@@ -2,15 +2,15 @@
 # -*- coding: UTF8 -*-
 # Este arquivo é parte do programa Vittolino
 # Copyright 2011-2017 Carlo Oliveira <carlo@nce.ufrj.br>,
-# `Labase <http://labase.selfip.org/>`__; `GPL <http://is.gd/3Udt>`__.
+# `Labase <http://labase.selfip.org/>`__, `GPL <http://is.gd/3Udt>`__.
 #
-# Vittolino é um software livre; você pode redistribuí-lo e/ou
+# Vittolino é um software livre, você pode redistribuí-lo e/ou
 # modificá-lo dentro dos termos da Licença Pública Geral GNU como
-# publicada pela Fundação do Software Livre (FSF); na versão 2 da
+# publicada pela Fundação do Software Livre (FSF), na versão 2 da
 # Licença.
 #
 # Este programa é distribuído na esperança de que possa ser útil,
-# mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO
+# mas SEM NENHUMA GARANTIA, sem uma garantia implícita de ADEQUAÇÃO
 # a qualquer MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
 # Licença Pública Geral GNU para maiores detalhes.
 #
@@ -21,14 +21,25 @@ Gerador de labirintos e jogos tipo 'novel'.
 """
 from browser import document, html
 
-DOCUMENT_PYDIV_ = document["pydiv"]
-
+DOC_PYDIV = document["pydiv"]
+ppcss = 'https://codepen.io/imprakash/pen/GgNMXO'
 STYLE = {'position': "absolute", 'width': 300, 'left': 0, 'top': 0, 'background': "white"}
 PSTYLE = {'position': "absolute", 'width': 300, 'left': 0, 'bottom': 0, 'background': "white"}
 LSTYLE = {'position': "absolute", 'width': 300, 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
+overlay = {
+  'position': 'fixed',
+  'top': 0,
+  'bottom': 0,
+  'left': 0,
+  'right': 0,
+  'background': 'rgba(0, 0, 0, 0.7)',
+  'transition': 'opacity 500ms',
+  'visibility': 'hidden',
+  'opacity': 0
+}
 
 
 def singleton(class_):
@@ -66,15 +77,18 @@ NADA = SalaCenaNula()._init()
 class Elemento:
     limbo = html.DIV(style=LSTYLE)
 
-    def __init__(self, img="", x=0, y=0, w="10px", h="10px", tit="", alt="", act=None, tel=DOCUMENT_PYDIV_, **kwargs):
+    def __init__(self, img="", x=0, y=0, w="10px", h="10px", tit="", alt="", act=None, tel=DOC_PYDIV, **kwargs):
         self.img, self.x, self.y, self.tit, self.alt = img, x, y, tit, alt
-        self.action = act if act else lambda _=0: None
+        self.act = act if act else lambda _=0: None
         self.tela = tel
         self.opacity = 0
         self.style = dict(PSTYLE)
         self.style["min-width"], self.style["min-height"] = w, h
         self.elt = html.DIV(Id=tit, style=self.style)
-        self.elt.onclick = self.action
+        if img:
+            self.img = html.IMG(src=img)
+            self.elt <= self.img
+        self.elt.onclick = lambda _=0: self.act()
         self.tela <= self.elt
         self.c(**kwargs)
 
@@ -88,6 +102,16 @@ class Elemento:
 
 
 class Portal(Elemento):
+
+    def __init__(self, img="", x=0, y=0, w="10px", h="10px", tit="", alt="", act=None, tel=DOC_PYDIV, **kwargs):
+        super().__init__(img, x, y, tit, alt, act, tel)
+        self.opacity = 0
+        self.style = dict(PSTYLE)
+        self.style["min-width"], self.style["min-height"] = w, h
+        self.elt = html.DIV(Id=tit, style=self.style)
+        self.elt.onclick = lambda _=0: self.act()
+        self.tela <= self.elt
+        self.c(**kwargs)
     pass
 
 
@@ -184,7 +208,7 @@ class Cena:
 
     def vai(self):
         INVENTARIO.desmonta()
-        tela = DOCUMENT_PYDIV_
+        tela = DOC_PYDIV
         tela.html = ""
         tela <= self.cena
         tela <= self.divesq
@@ -197,7 +221,7 @@ class Cena:
 
 @singleton
 class Popup:
-    def __init__(self, tela=DOCUMENT_PYDIV_):
+    def __init__(self, tela=DOC_PYDIV):
         self.tela = tela
         self.cena = None
         self.opacity = 0
@@ -213,7 +237,7 @@ class Popup:
 
 @singleton
 class Inventario:
-    def __init__(self, tela=DOCUMENT_PYDIV_):
+    def __init__(self, tela=DOC_PYDIV):
         self.tela = tela
         self.cena = None
         self.inventario = {}
