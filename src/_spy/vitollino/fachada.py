@@ -19,13 +19,17 @@
 """
 Fachada para acessar a API do vitollino.
 """
-from . import Cena, Sala, Labirinto, INVENTARIO
+from . import Cena, Sala, Elemento, Popup, Labirinto, INVENTARIO
 
 
 class Jogo:
     def __init__(self):
-        self.cena = Cena
-        self.sala = Sala
-        self.labirinto = Labirinto
-        self.inventario = INVENTARIO
+        self.cena = self.c = Cena
+        self.sala = self.s = Sala
+        self.algo = self.a = Elemento
+        self.texto = self.t = Sala
+        self.labirinto = self.l = Labirinto
+        self.inventario = self.i = INVENTARIO
         pass
+
+JOGO = Jogo()

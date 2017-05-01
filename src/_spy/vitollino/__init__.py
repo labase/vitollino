@@ -19,6 +19,8 @@
 from .vitollino import Cena
 from .vitollino import Sala
 from .vitollino import Labirinto
+from .vitollino import Elemento
+from .vitollino import Popup
 from .vitollino import INVENTARIO
-from .fachada import Jogo
+from .fachada import Jogo, JOGO
 __all__ = ["vitollino"]

@@ -27,23 +27,29 @@ Verifica a funcionalidade da biblioteca Vitollino.
 """
 import unittest
 from _spy.vitollino import Cena, Jogo
-from unittest.mock import MagicMock  # , patch, ANY
+from _spy.vitollino.vitollino import DOC_PYDIV
+from unittest.mock import MagicMock, patch, ANY  #
+from _spy.vitollino import JOGO as j
 
 
 class CenaTest(unittest.TestCase):
-
     def setUp(self):
         self.gui = MagicMock()
-        self.app = Cena("_IMG_", self.gui, self.gui)
+        self.gui.__le__ = MagicMock(name="APPEND", return_value=MagicMock(name="ELT"))
+        self.pdiv = MagicMock(name="PDIV")
+        # DOC_PYDIV = None #.__le__ = self.pdiv
+        self.meio = Cena("_IMG_")
+        self.app = Cena("_IMG_", self.gui, self.meio)
 
     def test_esquerda(self):
         """Cena esquerda vai é chamado."""
         self.app.vai_esquerda()
         self.gui.vai.assert_called_once_with()
+        self.app.vai_meio()
+        # self.pdiv.assert_called_with(ANY)
 
 
 class JogoTest(unittest.TestCase):
-
     def setUp(self):
         self.uma = MagicMock()
         self.outra = MagicMock()
@@ -83,7 +89,7 @@ class JogoTest(unittest.TestCase):
 
     def test_redefine_vai(self):
         """Cena direita, esquerda ou meio vai nao é chamado, vai é chamado."""
-        cena = self.app.cena("_IMG_", None, None, None, lambda: self.uma.vai())
+        cena = self.app.cena("_IMG_", None, None, None, vai=lambda: self.uma.vai())
         cena.vai_direita()
         self.uma.vai.assert_not_called()
         cena.vai_esquerda()
@@ -111,3 +117,44 @@ class JogoTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SalaCTest(unittest.TestCase):
+    def setUp(self):
+        self.uma = MagicMock()
+        self.outra = MagicMock()
+
+    def _cria_cenas_sala(self):
+        """Cenas e sala c criadas."""
+        j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
+        j.c.s(j.c.cfre, self.uma, j.c.cfun, j.c.cdir)
+
+    def test_cria_cenas_sala(self):
+        """Cenas e sala c criadas."""
+        self._cria_cenas_sala()
+        j.c.cfun.vai_esquerda()
+        self.uma.vai.assert_called_once_with()
+
+    def _cria_bau_alavanca(self):
+        """Artigos  e bau e alavanca criadas."""
+        self._cria_cenas_sala()
+        j.a.c(bau="_IMG_", alavanca="_IMG_")
+        j.c.cesq.bota(j.a.bau)
+        j.c.cbau.bota(j.a.alavanca)
+        j.a.bau.act = j.c.cbau.vai
+
+    def test_cria_bau_alavanca(self):
+        """Artigos  e bau e alavanca criadas."""
+        self._cria_cenas_sala()
+        self._cria_bau_alavanca()
+        assert j.a.bau in j.c.cesq.dentro
+        j.a.bau.elt.onclick()
+        assert j.i.cena is j.c.cbau
+        assert j.a.alavanca in j.c.cbau.dentro
+
+    def test_bota_alavanca_inventario(self):
+        """Alavanca no inventário."""
+        self._cria_cenas_sala()
+        self._cria_bau_alavanca()
+        j.i.pega()
+

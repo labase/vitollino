@@ -25,21 +25,18 @@ DOC_PYDIV = document["pydiv"]
 ppcss = 'https://codepen.io/imprakash/pen/GgNMXO'
 STYLE = {'position': "absolute", 'width': 300, 'left': 0, 'top': 0, 'background': "white"}
 PSTYLE = {'position': "absolute", 'width': 300, 'left': 0, 'bottom': 0, 'background': "white"}
-LSTYLE = {'position': "absolute", 'width': 300, 'left': 10000, 'bottom': 0, 'background': "white"}
+LIMBOSTYLE = {'position': "absolute", 'width': 300, 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
-overlay = {
-  'position': 'fixed',
-  'top': 0,
-  'bottom': 0,
-  'left': 0,
-  'right': 0,
-  'background': 'rgba(0, 0, 0, 0.7)',
-  'transition': 'opacity 500ms',
-  'visibility': 'hidden',
-  'opacity': 0
-}
+NSTYLE = {'position': "absolute", 'width': "80%", 'left': "20%", 'top': 0, 'margin': "0%",
+          "min-height": "5%", "cursor": "n-resize"}
+SSTYLE = {'position': "absolute", '': "80%", 'left': "20%", 'bottom': 0, 'margin': "0%",
+          "min-height": "5%", "cursor": "s-resize"}
+LSTYLE = {'position': "absolute", 'width': "5%", 'right': 0, 'top': "20%", 'margin': "0%",
+          "min-height": "80%", "cursor": "e-resize"}
+OSTYLE = {'position': "absolute", 'width': "5%", 'left': 0, 'top': "20%", 'margin': "0%",
+          "min-height": "80%", "cursor": "w-resize"}
 
 
 def singleton(class_):
@@ -114,6 +111,11 @@ class Portal(Elemento):
         self.c(**kwargs)
     pass
 
+    def p(self, cena, tit="", alt="", x=0, y=0, w="10px", h="10px", img=""):
+        self.tit.text, self.alt.text = tit, alt
+        cena.act = lambda _=0: self.go.click()
+        return cena
+
 
 class Labirinto:
     def __init__(self, salas):
@@ -155,38 +157,52 @@ class Cena:
     :param vai: Função a ser chamada no lugar da self.vai nativa
     """
 
-    def __init__(self, img=IMAGEM, nome='', esquerda=NADA, direita=NADA, meio=NADA, vai=None, **kwargs):
+    def __init__(self, img=IMAGEM, esquerda=NADA, direita=NADA, meio=NADA, vai=None, nome='', **kwargs):
         self.img = img
+        self.dentro = []
         self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
-        self.portal(esquerda, direita, meio)
         self.vai = vai or self.vai
-        self.cena = html.IMG(src=self.img, width=300, style=STYLE, title=nome)
-        Cena.cenas(**kwargs)
+        self.elt = html.DIV(style=STYLE)
+        self.elt <= html.IMG(src=self.img, width=300, style=STYLE, title=nome)
+        Cena.c(**kwargs)
 
         self.divesq = divesq = html.DIV(style=STYLE)
         divesq.style.width = 100
-        divesq.style.opacity = 0.3
         divesq.onclick = self.vai_esquerda
 
         self.divmeio = divmeio = html.DIV(style=STYLE)
         divmeio.style.width = 100
-        divmeio.style.opacity = 0.2
         divmeio.onclick = self.vai_meio
         divmeio.style.left = 100
 
         self.divdir = divdir = html.DIV(style=STYLE)
-        divdir.style.opacity = 0.1
         divdir.style.width = 100
         divdir.onclick = self.vai_direita
         divdir.style.left = 200
 
+    def __le__(self, other):
+        if type(other) in ["Cena", "Elemento"]:
+            self.elt <= other.elt
+        else:
+            self.elt <= other
+
     def portal(self, esquerda=None, direita=None, meio=None):
         self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
 
-    @classmethod
-    def cenas(cls, **cenas):
+    @staticmethod
+    def c(**cenas):
         for nome, imagem in cenas.items():
-            setattr(Cena, nome, Cena(imagem))
+            setattr(Cena, nome, Cena(imagem, nome=nome))
+
+    @staticmethod
+    def s(n=NADA, l=NADA, s=NADA, o=NADA, ):
+        cenas = [n, l, s, o]
+        for esquerda in range(4):
+            cena_a_direita = (esquerda + 1) % 4
+            if isinstance(cenas[esquerda], Cena):
+                cenas[esquerda].direita = cenas[cena_a_direita]
+            if isinstance(cenas[cena_a_direita], Cena):
+                cenas[cena_a_direita].esquerda = cenas[esquerda]
 
     def vai_direita(self, _=0):
         self.divdir.style.opacity = 0.8
@@ -206,11 +222,18 @@ class Cena:
     def sai(self, saida):
         self.meio = saida
 
+    def bota(self, item):
+        self.dentro.append(item)
+        self <= item
+
+    def tira(self, item):
+        self.dentro.pop(item)
+
     def vai(self):
         INVENTARIO.desmonta()
         tela = DOC_PYDIV
         tela.html = ""
-        tela <= self.cena
+        tela <= self.elt
         tela <= self.divesq
         tela <= self.divmeio
         tela <= self.divdir
@@ -219,20 +242,34 @@ class Cena:
         return self
 
 
-@singleton
 class Popup:
-    def __init__(self, tela=DOC_PYDIV):
+    def __init__(self, cena, tela=DOC_PYDIV):
+        self.cena = cena
+        self.__setup__(tela)
+
+    def __call__(self, tit="", txt="", *args, **kwargs):
+        return self.d(self.cena(*args, **kwargs), tit=tit, txt=txt)
+
+    def __setup__(self, tela=DOC_PYDIV):
         self.tela = tela
-        self.cena = None
-        self.opacity = 0
-        self.style = dict(PSTYLE)
-        self.style["min-height"] = "100px"
-        self.bolsa = html.DIV(Id="__popup__", style=self.style)
-        self.bolsa.onclick = self.mostra
-        self.limbo = html.DIV(style=self.style)
-        self.limbo.style.left = "4000px"
-        self.mostra()
-        tela <= self.bolsa
+        self.popup = html.DIV(Id="__popup__", Class="overlay")
+        div = html.DIV(Class="popup")
+        self.h2 = html.H2()
+        a = html.A("&times;", Class="close", href="#")
+        self.go = html.A(Class="button", href="#popup")
+        self.alt = html.DIV(Class="content")
+        self.tit = html.H1()
+        self.popup <= div
+        div <= self.h2
+        div <= a
+        div <= self.content
+        tela <= self.popup
+        self.__setup__ = lambda _: None
+
+    def d(self, cena, tit="", txt=""):
+        self.tit.text, self.alt.text = tit, txt
+        cena.act = lambda _=0: self.go.click()
+        return cena
 
 
 @singleton
@@ -415,13 +452,97 @@ class Bloco:
         # self.centro.norte.vai()
 
 
-def ofiuco():
+def main():
     # Bloco()
     # CenaPrincipal()
     return Bloco()
 
 
-# virgem()
+def __setup__():
+    document.head <= html.STYLE(CSS, type="text/css", media="screen")
 
 if "__main__" in __name__:
-    ofiuco()
+    main()
+
+CSS = '''
+h1 {
+  text-align: center;
+  font-family: Tahoma, Arial, sans-serif;
+  color: #06D85F;
+  margin: 80px 0;
+}
+
+.box {
+  width: 40%;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.2);
+  padding: 35px;
+  border: 2px solid #fff;
+  border-radius: 20px/50px;
+  background-clip: padding-box;
+  text-align: center;
+}
+
+.button {
+  font-size: 1em;
+  padding: 10px;
+  color: #fff;
+  border: 2px solid #06D85F;
+  border-radius: 20px/50px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+.button:hover {
+  background: #06D85F;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  transition: opacity 500ms;
+  visibility: hidden;
+  opacity: 0;
+}
+.overlay:target {
+  visibility: visible;
+  opacity: 1;
+}
+
+.popup {
+  margin: 70px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 5px;
+  width: 30%;
+  position: relative;
+  transition: all 5s ease-in-out;
+}
+
+.popup h2 {
+  margin-top: 0;
+  color: #333;
+  font-family: Tahoma, Arial, sans-serif;
+}
+.popup .close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  transition: all 200ms;
+  font-size: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+}
+.popup .close:hover {
+  color: #06D85F;
+}
+.popup .content {
+  max-height: 30%;
+  overflow: auto;
+}
+'''

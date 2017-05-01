@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 
 class BrythonMock:
+    style = MagicMock(name="STYLE")
 
     def __getitem__(self, item):
         self.DIV = self
@@ -17,6 +18,7 @@ class BrythonMock:
         return True
 document = BrythonMock()
 html = BrythonMock()
-html.DIV = MagicMock()
+html.DIV = BrythonMock()
+html.DIV.__le__ = MagicMock(name="DIVAPP")
 html.IMG = MagicMock()
 window = MagicMock()
