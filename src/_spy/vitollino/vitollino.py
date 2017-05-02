@@ -55,10 +55,11 @@ class SalaCenaNula:
         self.esquerda, self.direita = [None] * 2
         self.salas = [None] * 5
         self.cenas = [None] * 4
+        self.init = self.init
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
 
-    def _init(self):
-        self._init = lambda _=0, s=self: self
+    def init(self):
+        self.init = lambda _=0, s=self: self
         self.esquerda, self.direita = [SalaCenaNula()] * 2
         self.salas = [SalaCenaNula()] * 5
         self.cenas = [SalaCenaNula()] * 4
@@ -68,30 +69,35 @@ class SalaCenaNula:
     def vai(self):
         pass
 
-NADA = SalaCenaNula()._init()
+NADA = SalaCenaNula().init()
+NS = {}
 
 
 class Elemento:
     limbo = html.DIV(style=LSTYLE)
 
-    def __init__(self, img="", x=0, y=0, w="10px", h="10px", tit="", alt="", act=None, tel=DOC_PYDIV, **kwargs):
-        self.img, self.x, self.y, self.tit, self.alt = img, x, y, tit, alt
+    def __init__(self, img="", act=None, style=NS, tit="", alt="", tel=DOC_PYDIV, **kwargs):
+        self.img = img
         self.act = act if act else lambda _=0: None
         self.tela = tel
         self.opacity = 0
-        self.style = dict(PSTYLE)
-        self.style["min-width"], self.style["min-height"] = w, h
+        self.style = dict(**PSTYLE)
+        # self.style["min-width"], self.style["min-height"] = w, h
+        self.style.update(style)
         self.elt = html.DIV(Id=tit, style=self.style)
         if img:
-            self.img = html.IMG(src=img)
+            self.img = html.IMG(src=img, title=tit, alt=alt)
             self.elt <= self.img
-        self.elt.onclick = lambda _=0: self.act()
+        self.elt.onclick = self._click
         self.tela <= self.elt
         self.c(**kwargs)
 
-    def entra(self, cena, x=None, y=None):
-        self.elt.x, self.elt.x = x if not None else self.x, y if not None else self.y
-        cena.bota(self)
+    def _click(self, _=None):
+        return self.act()
+
+    def entra(self, cena, style=None):
+        self.elt.style = style if style else self.style
+        cena <= self
 
     @classmethod
     def c(cls, **kwarg):
@@ -100,11 +106,11 @@ class Elemento:
 
 class Portal(Elemento):
 
-    def __init__(self, img="", x=0, y=0, w="10px", h="10px", tit="", alt="", act=None, tel=DOC_PYDIV, **kwargs):
-        super().__init__(img, x, y, tit, alt, act, tel)
+    def __init__(self, img="", style=NS, tit="", alt="", act=None, tel=DOC_PYDIV, **kwargs):
+        super().__init__(img, act, style, tit, alt, tel)
         self.opacity = 0
-        self.style = dict(PSTYLE)
-        self.style["min-width"], self.style["min-height"] = w, h
+        self.style = dict(**PSTYLE)
+        # self.style["min-width"], self.style["min-height"] = w, h
         self.elt = html.DIV(Id=tit, style=self.style)
         self.elt.onclick = lambda _=0: self.act()
         self.tela <= self.elt
@@ -230,6 +236,7 @@ class Cena:
         self.dentro.pop(item)
 
     def vai(self):
+        INVENTARIO.cena = self
         INVENTARIO.desmonta()
         tela = DOC_PYDIV
         tela.html = ""
@@ -243,12 +250,14 @@ class Cena:
 
 
 class Popup:
+    POP = None
+
     def __init__(self, cena, tela=DOC_PYDIV):
         self.cena = cena
         self.__setup__(tela)
 
     def __call__(self, tit="", txt="", *args, **kwargs):
-        return self.d(self.cena(*args, **kwargs), tit=tit, txt=txt)
+        return Popup.d(self.cena(*args, **kwargs), tit=tit, txt=txt)
 
     def __setup__(self, tela=DOC_PYDIV):
         self.tela = tela
@@ -262,13 +271,15 @@ class Popup:
         self.popup <= div
         div <= self.h2
         div <= a
-        div <= self.content
+        div <= self.alt
         tela <= self.popup
+        Popup.POP = self
         self.__setup__ = lambda _: None
 
-    def d(self, cena, tit="", txt=""):
-        self.tit.text, self.alt.text = tit, txt
-        cena.act = lambda _=0: self.go.click()
+    @staticmethod
+    def d(cena, tit="", txt=""):
+        Popup.POP.tit.text, Popup.POP.alt.text = tit, txt
+        cena.act = lambda _=0: Popup.POP.go.click()
         return cena
 
 
@@ -279,37 +290,47 @@ class Inventario:
         self.cena = None
         self.inventario = {}
         self.opacity = 0
-        self.style = dict(STYLE)
+        self.style = dict(**STYLE)
         self.style["min-height"] = "30px"
-        self.bolsa = html.DIV(Id="__inv__", style=self.style)
-        self.bolsa.onclick = self.mostra
+        self.elt = html.DIV(Id="__inv__", style=self.style)
+        self.elt.onclick = self.mostra
         self.limbo = html.DIV(style=self.style)
         self.limbo.style.left = "4000px"
         self.mostra()
-        tela <= self.bolsa
+        tela <= self.elt
+
+    def __le__(self, other):
+        if type(other) in ["Cena", "Elemento"]:
+            self.elt <= other.elt
+        else:
+            self.elt <= other
 
     def inicia(self):
-        self.bolsa.html = ""
+        self.elt.html = ""
         self.cena = None
         self.opacity = 0
         self.mostra()
 
     def desmonta(self, _=0):
-        self.limbo <= self.bolsa
+        self.limbo <= self.elt
 
     def monta(self, _=0):
-        self.tela <= self.bolsa
+        self.tela <= self.elt
 
     def mostra(self, _=0):
         self.opacity = abs(self.opacity - 0.5)
-        self.bolsa.style.opacity = self.opacity
+        self.elt.style.opacity = self.opacity
 
-    def bota(self, nome_item, item, acao):
-        item_img = html.IMG(Id=nome_item, src=item, width=30, style=ISTYLE)
+    def bota(self, nome_item, item="", acao=lambda: None):
+        if isinstance(nome_item, str):
+            item_img = html.IMG(Id=nome_item, src=item, width=30, style=ISTYLE)
+            self.elt <= item_img
+        else:
+            nome_item.entra(self)
+            item_img = nome_item.elt
         Dropper(item_img)
         item_img.onclick = acao
         self.inventario[nome_item] = acao
-        self.bolsa <= item_img
 
     def tira(self, nome_item):
         item_img = document[nome_item]
@@ -457,10 +478,6 @@ def main():
     # CenaPrincipal()
     return Bloco()
 
-
-def __setup__():
-    document.head <= html.STYLE(CSS, type="text/css", media="screen")
-
 if "__main__" in __name__:
     main()
 
@@ -546,3 +563,10 @@ h1 {
   overflow: auto;
 }
 '''
+
+
+def __setup__():
+    document.head <= html.STYLE(CSS, type="text/css", media="screen")
+    Popup(Cena())
+
+__setup__()

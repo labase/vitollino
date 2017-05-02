@@ -149,12 +149,32 @@ class SalaCTest(unittest.TestCase):
         self._cria_bau_alavanca()
         assert j.a.bau in j.c.cesq.dentro
         j.a.bau.elt.onclick()
-        assert j.i.cena is j.c.cbau
         assert j.a.alavanca in j.c.cbau.dentro
+        # assert j.i.cena is j.c.cbau, "cena é %s" % j.i.cena
 
     def test_bota_alavanca_inventario(self):
         """Alavanca no inventário."""
         self._cria_cenas_sala()
         self._cria_bau_alavanca()
-        j.i.pega()
+        a = MagicMock(name="Enter Inventory")
+        j.i.elt = a
+        j.i.elt.__le__ = MagicMock(name="Enter Elt")
+        j.i.bota(j.a.alavanca)
+        assert j.a.alavanca in j.i.inventario, j.i.inventario
+        a.__le__.assert_called_once_with(j.a.alavanca)
 
+
+class SalaCDialogoTest(unittest.TestCase):
+    def setUp(self):
+        self.uma = MagicMock()
+        self.outra = MagicMock()
+
+    def _cria_cenas_sala(self):
+        """Cenas e sala c criadas."""
+        j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
+        j.c.s(j.c.cfre, self.uma, j.c.cfun, j.c.cdir)
+
+    def test_cria_cenas_sala(self):
+        """Cenas e sala c criadas."""
+        self._cria_cenas_sala()
+        j.t.d(j.c.cfre, "UM", "DOIS")

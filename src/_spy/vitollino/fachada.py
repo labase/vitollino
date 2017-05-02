@@ -27,7 +27,7 @@ class Jogo:
         self.cena = self.c = Cena
         self.sala = self.s = Sala
         self.algo = self.a = Elemento
-        self.texto = self.t = Sala
+        self.texto = self.t = Popup
         self.labirinto = self.l = Labirinto
         self.inventario = self.i = INVENTARIO
         pass
