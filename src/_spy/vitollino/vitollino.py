@@ -252,7 +252,7 @@ class Cena:
 class Popup:
     POP = None
 
-    def __init__(self, cena, tela=DOC_PYDIV):
+    def __init__(self, cena, tit="", txt="", tela=DOC_PYDIV):
         self.cena = cena
         self.__setup__(tela)
 

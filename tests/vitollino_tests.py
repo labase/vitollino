@@ -27,8 +27,8 @@ Verifica a funcionalidade da biblioteca Vitollino.
 """
 import unittest
 from _spy.vitollino import Cena, Jogo
-from _spy.vitollino.vitollino import DOC_PYDIV
-from unittest.mock import MagicMock, patch, ANY  #
+# from _spy.vitollino.vitollino import DOC_PYDIV
+from unittest.mock import MagicMock  # , patch, ANY
 from _spy.vitollino import JOGO as j
 
 
@@ -174,7 +174,24 @@ class SalaCDialogoTest(unittest.TestCase):
         j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
         j.c.s(j.c.cfre, self.uma, j.c.cfun, j.c.cdir)
 
-    def test_cria_cenas_sala(self):
-        """Cenas e sala c criadas."""
+    def test_decora_dialogo(self):
+        """Cenas decorada com dialogo."""
         self._cria_cenas_sala()
         j.t.d(j.c.cfre, "UM", "DOIS")
+        j.t.POP.go = a = MagicMock(name="Open dialog")
+        assert j.t.POP.alt.text == "DOIS"
+        assert j.t.POP.tit.text == "UM"
+        j.c.cfre.act()
+        a.click.assert_called_once_with()
+
+    def test_decora_dialogo_classe(self):
+        """Classe Cena decorada com dialogo."""
+        @j.t
+        class ComBau(Cena):
+            pass
+        cc = ComBau(tit="UMA", txt="DUAS")
+        j.t.POP.go = a = self.uma
+        assert j.t.POP.alt.text == "DUAS"
+        assert j.t.POP.tit.text == "UMA"
+        cc.act()
+        a.click.assert_called_once_with()
