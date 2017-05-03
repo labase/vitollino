@@ -5,6 +5,7 @@ class BrythonMock:
 
     def __init__(self, *_, **__):
         self.onclick = lambda: None
+        self.text = None
         self.style = MagicMock()
         self.head = MagicMock()
         a, b = MagicMock(), MagicMock()

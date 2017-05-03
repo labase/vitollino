@@ -105,18 +105,15 @@ class Elemento:
         return [setattr(cls, nome, Elemento(img) if isinstance(img, str) else img) for nome, img in kwarg.items()]
 
 
-class Portal(Elemento):
+class Portal:
 
-    def __init__(self, img="", style=NS, tit="", alt="", act=None, tel=DOC_PYDIV, **kwargs):
-        super().__init__(img, act, style, tit, alt, tel)
-        self.opacity = 0
-        self.style = dict(**PSTYLE)
-        # self.style["min-width"], self.style["min-height"] = w, h
-        self.elt = html.DIV(Id=tit, style=self.style)
+    def __init__(self, img, style=NS, act=None, tel=DOC_PYDIV, **kwargs):
+        self.style = style or dict(**PSTYLE)
+        self.img = Cena(img)
+        self.elt = html.DIV(style=self.style)
         self.elt.onclick = lambda _=0: self.act()
         self.tela <= self.elt
         self.c(**kwargs)
-    pass
 
     def p(self, cena, tit="", alt="", x=0, y=0, w="10px", h="10px", img=""):
         self.tit.text, self.alt.text = tit, alt
@@ -136,14 +133,21 @@ class Labirinto:
 
 
 class Sala:
-    def __init__(self, n=NADA, l=NADA, s=NADA, o=NADA):
+    def __init__(self, n=NADA, l=NADA, s=NADA, o=NADA, nome='', **kwargs):
         self.cenas = [Cena(img) if isinstance(img, str) else img for img in [n, l, s, o]]
         self.norte, self.leste, self.sul, self.oeste = self.cenas
+        self.nome = nome
         # [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
         for esquerda in range(4):
             cena_a_direita = (esquerda + 1) % 4
             self.cenas[esquerda].direita = self.cenas[cena_a_direita]
             self.cenas[cena_a_direita].esquerda = self.cenas[esquerda]
+        Sala.c(**kwargs)
+
+    @staticmethod
+    def c(**cenas):
+        for nome, imagem in cenas.items():
+            setattr(Sala, nome, Sala(*imagem, nome=nome))
 
 
 class Cena:
@@ -202,8 +206,8 @@ class Cena:
             setattr(Cena, nome, Cena(imagem, nome=nome))
 
     @staticmethod
-    def s(n=NADA, l=NADA, s=NADA, o=NADA):
-        return Sala(n, l, s, o)
+    def s(n=NADA, l=NADA, s=NADA, o=NADA, nome="", **kwargs):
+        return Sala(n, l, s, o, nome=nome, **kwargs)
 
     def vai_direita(self, _=0):
         self.divdir.style.opacity = 0.8
@@ -247,34 +251,42 @@ class Cena:
 class Popup:
     POP = None
 
-    def __init__(self, cena, tit="", txt="", tela=DOC_PYDIV):
+    def __init__(self, cena):
         self.cena = cena
-        self.__setup__(tela)
+        Popup.__setup__()
 
-    def __call__(self, tit="", txt="", *args, **kwargs):
+    def __call__(self, tit="", txt="", *args, tela=DOC_PYDIV, **kwargs):
         return Popup.d(self.cena(*args, **kwargs), tit=tit, txt=txt)
 
-    def __setup__(self, tela=DOC_PYDIV):
-        self.tela = tela
-        self.popup = html.DIV(Id="__popup__", Class="overlay")
-        div = html.DIV(Class="popup")
-        self.h2 = html.H2()
-        a = html.A("&times;", Class="close", href="#")
-        self.go = html.A(Class="button", href="#popup")
-        self.alt = html.DIV(Class="content")
-        self.tit = html.H1()
-        self.popup <= div
-        div <= self.h2
-        div <= a
-        div <= self.alt
-        tela <= self.popup
-        Popup.POP = self
-        self.__setup__ = lambda _: None
+    @staticmethod
+    def __setup__():
+        class Pop:
+            def __init__(self, tela=DOC_PYDIV):
+                self.tela = tela
+                self.popup = html.DIV(Id="__popup__", Class="overlay")
+                div = html.DIV(Class="popup")
+                self.h2 = html.H2()
+                a = html.A("&times;", Class="close", href="#")
+                self.go = html.A(Class="button", href="#popup")
+                self.alt = html.DIV(Class="content")
+                self.tit = html.H1()
+                self.popup <= div
+                div <= self.h2
+                div <= a
+                div <= self.alt
+                tela <= self.popup
+
+            def mostra(self, act, tit="", txt=""):
+                self.tit.text, self.alt.text = tit, txt
+                self.go.click()
+                act()
+        Popup.POP = Pop()
+        Popup.__setup__ = lambda: None
 
     @staticmethod
     def d(cena, tit="", txt=""):
-        Popup.POP.tit.text, Popup.POP.alt.text = tit, txt
-        cena.act = lambda _=0: Popup.POP.go.click()
+        act = cena.vai
+        cena.vai = lambda _=0: Popup.POP.mostra(act, tit, txt)
         return cena
 
 

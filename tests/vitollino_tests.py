@@ -28,7 +28,7 @@ Verifica a funcionalidade da biblioteca Vitollino.
 import unittest
 from _spy.vitollino import Cena, Jogo
 # from _spy.vitollino.vitollino import DOC_PYDIV
-from unittest.mock import MagicMock  # , patch, ANY
+from unittest.mock import MagicMock, ANY  # , patch
 from _spy.vitollino import JOGO as j
 I = "_IMG_"
 MAPA = [["sala_"+s if s else "" for s in l.split(",")]
@@ -54,9 +54,26 @@ class CenaTest(unittest.TestCase):
         # self.pdiv.assert_called_with(ANY)
 
     def test_sala_kwargs(self):
-        """Cena esquerda vai é chamado."""
-        sala = j.c.s(I, I, I, I)
+        """Monta salas usando kwargs."""
+        sala = j.c.s(I, I, I, I, sala_a=(I, I, I, I))
+        outrasala = j.c.s(I, sala.sul, I, I, sala_b=(I, I, j.s.sala_a.sul, self.gui))
         assert sala.norte
+        assert outrasala.norte
+        assert j.s.sala_a.norte
+        self.assertEqual(j.s.sala_b.sul.direita, self.gui, j.s.sala_b.sul.direita)
+        j.s.sala_b.sul.vai_direita()
+        self.gui.vai.assert_called_once_with()
+
+    def test_sala_nomeado(self):
+        """Monta salas usando direções nomeadas."""
+        sala = j.c.s(n=I, s=I, sala_c=(I, I, I, I))
+        outrasala = j.c.s(s=sala.sul, l=self.gui, sala_d=(I, I, j.s.sala_c.sul, sala.norte))
+        assert sala.norte
+        assert outrasala.norte
+        assert j.s.sala_c.norte
+        self.assertEqual(j.s.sala_d.norte.esquerda, sala.norte, j.s.sala_d.norte.esquerda)
+        outrasala.sul.vai_esquerda()
+        self.gui.vai.assert_called_once_with()
 
 
 class JogoTest(unittest.TestCase):
@@ -189,9 +206,9 @@ class SalaCDialogoTest(unittest.TestCase):
         self._cria_cenas_sala()
         j.t.d(j.c.cfre, "UM", "DOIS")
         j.t.POP.go = a = MagicMock(name="Open dialog")
-        assert j.t.POP.alt.text == "DOIS"
-        assert j.t.POP.tit.text == "UM"
-        j.c.cfre.act()
+        j.c.cfre.vai()
+        assert j.t.POP.alt.text == "DOIS", j.t.POP.alt.text
+        assert j.t.POP.tit.text == "UM", j.t.POP.tit.text
         a.click.assert_called_once_with()
 
     def test_decora_dialogo_classe(self):
@@ -201,7 +218,7 @@ class SalaCDialogoTest(unittest.TestCase):
             pass
         cc = ComBau(tit="UMA", txt="DUAS")
         j.t.POP.go = a = self.uma
+        cc.vai()
         assert j.t.POP.alt.text == "DUAS"
         assert j.t.POP.tit.text == "UMA"
-        cc.act()
         a.click.assert_called_once_with()
