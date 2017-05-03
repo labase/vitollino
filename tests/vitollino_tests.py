@@ -30,6 +30,11 @@ from _spy.vitollino import Cena, Jogo
 # from _spy.vitollino.vitollino import DOC_PYDIV
 from unittest.mock import MagicMock  # , patch, ANY
 from _spy.vitollino import JOGO as j
+I = "_IMG_"
+MAPA = [["sala_"+s if s else "" for s in l.split(",")]
+        for l in "a,b,c,,,,,,_,,d,,e,f,g_,,h,i,j,k,l,,_,,,,m,,n,_,,,,o,p,q,r".split("_")]
+
+SALAS = [chr(i) for i in range(ord('a'), ord('z')+1)]
 
 
 class CenaTest(unittest.TestCase):
@@ -47,6 +52,11 @@ class CenaTest(unittest.TestCase):
         self.gui.vai.assert_called_once_with()
         self.app.vai_meio()
         # self.pdiv.assert_called_with(ANY)
+
+    def test_sala_kwargs(self):
+        """Cena esquerda vai é chamado."""
+        sala = j.c.s(I, I, I, I)
+        assert sala.norte
 
 
 class JogoTest(unittest.TestCase):

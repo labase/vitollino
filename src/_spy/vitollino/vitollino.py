@@ -71,6 +71,7 @@ class SalaCenaNula:
 
 NADA = SalaCenaNula().init()
 NS = {}
+NL = []
 
 
 class Elemento:
@@ -135,10 +136,10 @@ class Labirinto:
 
 
 class Sala:
-    def __init__(self, imagensnlso, saidasnlso):
-        self.cenas = [Cena(img) if img else NADA for img in imagensnlso]
+    def __init__(self, n=NADA, l=NADA, s=NADA, o=NADA):
+        self.cenas = [Cena(img) if isinstance(img, str) else img for img in [n, l, s, o]]
         self.norte, self.leste, self.sul, self.oeste = self.cenas
-        [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
+        # [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
         for esquerda in range(4):
             cena_a_direita = (esquerda + 1) % 4
             self.cenas[esquerda].direita = self.cenas[cena_a_direita]
@@ -201,14 +202,8 @@ class Cena:
             setattr(Cena, nome, Cena(imagem, nome=nome))
 
     @staticmethod
-    def s(n=NADA, l=NADA, s=NADA, o=NADA, ):
-        cenas = [n, l, s, o]
-        for esquerda in range(4):
-            cena_a_direita = (esquerda + 1) % 4
-            if isinstance(cenas[esquerda], Cena):
-                cenas[esquerda].direita = cenas[cena_a_direita]
-            if isinstance(cenas[cena_a_direita], Cena):
-                cenas[cena_a_direita].esquerda = cenas[esquerda]
+    def s(n=NADA, l=NADA, s=NADA, o=NADA):
+        return Sala(n, l, s, o)
 
     def vai_direita(self, _=0):
         self.divdir.style.opacity = 0.8
