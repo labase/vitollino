@@ -19,7 +19,7 @@
 """
 Fachada para acessar a API do vitollino.
 """
-from . import Cena, Sala, Elemento, Popup, Labirinto, INVENTARIO
+from . import Cena, Sala, Elemento, Popup, Labirinto, INVENTARIO, Portal, Dropper, Droppable
 
 
 class Jogo:
@@ -30,6 +30,9 @@ class Jogo:
         self.texto = self.t = Popup
         self.labirinto = self.l = Labirinto
         self.inventario = self.i = INVENTARIO
+        self.portal = self.p = Portal
+        self.dropper = self.d = Dropper
+        self.droppable = self.r = Droppable
         pass
 
 JOGO = Jogo()

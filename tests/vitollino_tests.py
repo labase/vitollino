@@ -43,8 +43,8 @@ class CenaTest(unittest.TestCase):
         self.gui.__le__ = MagicMock(name="APPEND", return_value=MagicMock(name="ELT"))
         self.pdiv = MagicMock(name="PDIV")
         # DOC_PYDIV = None #.__le__ = self.pdiv
-        self.meio = Cena("_IMG_")
-        self.app = Cena("_IMG_", self.gui, self.meio)
+        self.meio = Cena("_IMG_", nome="meio")
+        self.app = Cena("_IMG_", self.gui, self.meio, nome="app")
 
     def test_esquerda(self):
         """Cena esquerda vai é chamado."""
@@ -74,6 +74,29 @@ class CenaTest(unittest.TestCase):
         self.assertEqual(j.s.sala_d.norte.esquerda, sala.norte, j.s.sala_d.norte.esquerda)
         outrasala.sul.vai_esquerda()
         self.gui.vai.assert_called_once_with()
+
+    def test_portal(self):
+        """Adiciona portal"""
+        self.meio.elt = MagicMock()
+        self.meio.elt.__le__ = self.pdiv
+        p = j.p(N=self.app)
+        p(self.meio)
+        assert p.cena == self.meio
+        self.meio.elt.__le__.assert_called_once_with(p.elt)
+        assert "cursor" in p.style, f"O estilo do portal é {p.style}"
+        assert p.style["cursor"] == "n-resize", f"O estilo do cursor é {p.style['cursor']}"
+
+    def test_decora_portal(self):
+        """Adiciona portal decora"""
+        @j.p(N=self.meio, S=self.app)
+        class Acena(Cena):
+            ...
+        self.meio.vai = MagicMock()
+        self.meio.elt.__le__ = self.pdiv
+        a = Acena()
+        assert a.N == self.meio
+        assert a.S == self.app
+        # self.meio.vai.assert_called_once_with(ANY)
 
 
 class JogoTest(unittest.TestCase):

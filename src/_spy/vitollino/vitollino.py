@@ -116,26 +116,35 @@ class Portal:
     Z = ZSTYLE
     PORTAIS = dict(N=NSTYLE, L=LSTYLE, S=SSTYLE, O=OSTYLE, Z=ZSTYLE)
 
-    def __init__(self, cena):
-        self.cena = cena
-        self.style = ZSTYLE
+    def __init__(self, style=NS, **kwargs):
+        self.style = style or ZSTYLE
+        self.kwargs = kwargs
 
-    def __call__(self, style=NS, tela=DOC_PYDIV, **kwargs):
-        return self.p(style, tela, **kwargs)
+    def __call__(self, cena=lambda: None, *args, **kwargs):
+        self.cena = cena(*args, **kwargs) if isinstance(cena, type) else cena
+        self.p(self.style, **self.kwargs)
+        return self.cena
 
-    def __setup__(self, cena, portal, style=NS, tel=DOC_PYDIV, **kwargs):
-        style.update({"min-height": style["height"]})
+    def __setup__(self, cena, portal, style=NS):
+        _ = style.update({"min-height": style["height"]}) if "height" in style else None
         sty = Portal.PORTAIS.get(portal, ZSTYLE)
         self.style.update(sty)
         self.style.update(style)
         self.elt = html.DIV(style=self.style)
         self.elt.onclick = lambda _=0: cena.vai()
-        cena <= self.elt
+        self.cena <= self.elt
+        setattr(self.cena, portal, cena)
         return self.cena
 
-    def p(self, style=NS, tela=DOC_PYDIV, **kwargs):
-        [self.__setup__(cena, portal, style, tela) for portal, cena in kwargs.items()]
+    def p(self, style=NS, **kwargs):
+        [self.__setup__(cena, portal, style) for portal, cena in kwargs.items()]
         return self.cena
+
+
+class Rosa(Portal):
+
+    def __call__(self, style=NS, tela=DOC_PYDIV, **kwargs):
+        return self.p(style, tela, **kwargs)
 
 
 class Labirinto:
@@ -187,6 +196,7 @@ class Cena:
 
     def __init__(self, img=IMAGEM, esquerda=NADA, direita=NADA, meio=NADA, vai=None, nome='', **kwargs):
         self.img = img
+        self.nome = nome
         self.dentro = []
         self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
         self.vai = vai or self.vai
@@ -216,9 +226,11 @@ class Cena:
             self.elt <= other.elt
         else:
             self.elt <= other
+            print(other)
 
-    def portal(self, esquerda=None, direita=None, meio=None):
+    def portal(self, esquerda=None, direita=None, meio=None, **kwargs):
         self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
+        return Portal()(self, **kwargs)
 
     @staticmethod
     def c(**cenas):
