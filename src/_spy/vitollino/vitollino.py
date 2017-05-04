@@ -37,6 +37,8 @@ LSTYLE = {'position': "absolute", 'width': "5%", 'right': 0, 'top': "20%", 'marg
           "min-height": "80%", "cursor": "e-resize"}
 OSTYLE = {'position': "absolute", 'width': "5%", 'left': 0, 'top': "20%", 'margin': "0%",
           "min-height": "80%", "cursor": "w-resize"}
+ZSTYLE = {'position': "absolute", 'width': "10%", 'left': "50%", 'top': "50%", 'margin': "0%",
+          "min-height": "10%", "cursor": "zoom-in"}
 
 
 def singleton(class_):
@@ -107,18 +109,33 @@ class Elemento:
 
 class Portal:
 
-    def __init__(self, img, style=NS, act=None, tel=DOC_PYDIV, **kwargs):
-        self.style = style or dict(**PSTYLE)
-        self.img = Cena(img)
-        self.elt = html.DIV(style=self.style)
-        self.elt.onclick = lambda _=0: self.act()
-        self.tela <= self.elt
-        self.c(**kwargs)
+    N = NSTYLE
+    L = LSTYLE
+    S = SSTYLE
+    O = OSTYLE
+    Z = ZSTYLE
+    PORTAIS = dict(N=NSTYLE, L=LSTYLE, S=SSTYLE, O=OSTYLE, Z=ZSTYLE)
 
-    def p(self, cena, tit="", alt="", x=0, y=0, w="10px", h="10px", img=""):
-        self.tit.text, self.alt.text = tit, alt
-        cena.act = lambda _=0: self.go.click()
-        return cena
+    def __init__(self, cena):
+        self.cena = cena
+        self.style = ZSTYLE
+
+    def __call__(self, style=NS, tela=DOC_PYDIV, **kwargs):
+        return self.p(style, tela, **kwargs)
+
+    def __setup__(self, cena, portal, style=NS, tel=DOC_PYDIV, **kwargs):
+        style.update({"min-height": style["height"]})
+        sty = Portal.PORTAIS.get(portal, ZSTYLE)
+        self.style.update(sty)
+        self.style.update(style)
+        self.elt = html.DIV(style=self.style)
+        self.elt.onclick = lambda _=0: cena.vai()
+        cena <= self.elt
+        return self.cena
+
+    def p(self, style=NS, tela=DOC_PYDIV, **kwargs):
+        [self.__setup__(cena, portal, style, tela) for portal, cena in kwargs.items()]
+        return self.cena
 
 
 class Labirinto:
@@ -190,6 +207,9 @@ class Cena:
         divdir.style.width = 100
         divdir.onclick = self.vai_direita
         divdir.style.left = 200
+
+    def __call__(self):
+        return self.vai()
 
     def __le__(self, other):
         if type(other) in ["Cena", "Elemento"]:
