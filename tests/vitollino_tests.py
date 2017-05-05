@@ -83,8 +83,8 @@ class CenaTest(unittest.TestCase):
         p(self.meio)
         assert p.cena == self.meio
         self.meio.elt.__le__.assert_called_once_with(p.elt)
-        assert "cursor" in p.style, f"O estilo do portal é {p.style}"
-        assert p.style["cursor"] == "n-resize", f"O estilo do cursor é {p.style['cursor']}"
+        assert "cursor" in p.style, "O estilo do portal é {p.style}"
+        assert p.style["cursor"] == "n-resize", "O estilo do cursor é {p.style['cursor']}"
 
     def test_decora_portal(self):
         """Adiciona portal decora"""
@@ -167,6 +167,55 @@ class JogoTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SalaTest(unittest.TestCase):
+    def setUp(self):
+        self.uma = MagicMock()
+        self.outra = MagicMock()
+
+    def _cria_cenas_sala(self):
+        """Cenas e sala c criadas."""
+        j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
+        return j.s(n=j.c.cfre, l=j.c.cesq, s=j.c.cfun, o=j.c.cdir)
+
+    def test_cria_cenas_sala(self):
+        """Cenas e sala c criadas."""
+        self._cria_cenas_sala()
+        j.c.cesq.vai = self.uma
+        assert j.c.cfun.O == j.c.cesq
+        j.c.cfun.O()
+        j.c.cesq.vai.assert_called_once_with()
+
+    def test_conecta_sala(self):
+        """Cenas e sala c, d conectadas."""
+        c = self._cria_cenas_sala()
+        j.c.c(dfre="_IMG_", desq="_IMG_", ddir="_IMG_", dfun="_IMG_", dbau="_IMG_")
+        d = j.s(n=j.c.dfre, l=j.c.desq, s=j.c.dfun, o=j.c.ddir)
+        j.l(c, d, d, d, d)
+        j.c.dfun.vai = self.uma
+        assert j.c.cfun.S == j.c.dfun
+        j.c.cfun.S()
+        j.c.dfun.vai.assert_called_once_with()
+        j.c.cfre.vai = self.outra
+        assert j.c.dfre.N == j.c.cfre
+        j.c.dfre.N()
+        j.c.cfre.vai.assert_called_once_with()
+
+    def test_mapeia_sala(self):
+        """Cenas e sala c, d mapeadas."""
+        c = self._cria_cenas_sala()
+        j.c.c(efre="_IMG_", eesq="_IMG_", edir="_IMG_", efun="_IMG_")
+        d = j.s(n=j.c.efre, l=j.c.eesq, s=j.c.efun, o=j.c.edir)
+        j.l.m([[c, d], [d, c]])
+        j.c.efun.vai = self.uma
+        assert j.c.cfun.S == j.c.efun
+        j.c.cfun.S()
+        j.c.efun.vai.assert_called_once_with()
+        j.c.cfre.vai = self.outra
+        assert j.c.efre.N == j.c.cfre
+        j.c.efre.N()
+        j.c.cfre.vai.assert_called_once_with()
 
 
 class SalaCTest(unittest.TestCase):

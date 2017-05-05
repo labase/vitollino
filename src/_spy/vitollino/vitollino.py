@@ -56,7 +56,7 @@ class SalaCenaNula:
     def __init__(self):
         self.esquerda, self.direita = [None] * 2
         self.salas = [None] * 5
-        self.cenas = [None] * 4
+        self.cenas = [self] * 4
         self.init = self.init
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
 
@@ -69,6 +69,9 @@ class SalaCenaNula:
         return self
 
     def vai(self):
+        pass
+
+    def portal(self, *_, **__):
         pass
 
 NADA = SalaCenaNula().init()
@@ -134,28 +137,37 @@ class Portal:
         self.elt.onclick = lambda _=0: cena.vai()
         self.cena <= self.elt
         setattr(self.cena, portal, cena)
+        self.__call__ = cena.vai
         return self.cena
 
     def p(self, style=NS, **kwargs):
         [self.__setup__(cena, portal, style) for portal, cena in kwargs.items()]
         return self.cena
-
-
-class Rosa(Portal):
-
-    def __call__(self, style=NS, tela=DOC_PYDIV, **kwargs):
-        return self.p(style, tela, **kwargs)
+ROSA = list("NLSO")
+CART = [(0, -1), (1, 0), (0, -1), (-1, 0)]
 
 
 class Labirinto:
-    def __init__(self, salas):
-        salas = [s or NADA for s in salas]
-        self.salas = salas
+    def __init__(self,  c=NADA,  n=NADA, l=NADA, s=NADA, o=NADA):
+        self.salas = [sala for sala in [c, n, l, s, o]]
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
         for indice, sala in enumerate(self.salas[1:]):
-            self.centro.cenas[indice].sai(sala.cenas[indice])
+            self.centro.cenas[indice].portal(**{ROSA[indice]: sala.cenas[indice]})
             indice_oposto = (indice + 2) % 4
-            sala.cenas[indice_oposto].sai(self.centro.cenas[indice_oposto])
+            sala.cenas[indice_oposto].portal(**{ROSA[indice_oposto]: self.centro.cenas[indice_oposto]})
+
+    @staticmethod
+    def m(cenas):
+        def vizinhos(ii, jj, cns=cenas):
+            return [cns[ii+m][jj+n] if 0 <= ii+m < len(cns) and 0 <= jj+n < len(cns[ii+m]) else NADA for m, n in CART]
+
+        for i, linha in enumerate(cenas):
+            if isinstance(linha, list):
+                for j, centro in enumerate(linha):
+                    for k, sala in enumerate(vizinhos(i, j)):
+                        centro.cenas[k].portal(**{ROSA[k]: sala.cenas[k]})
+                        indice_oposto = (k + 2) % 4
+                        sala.cenas[indice_oposto].portal(**{ROSA[indice_oposto]: centro.cenas[indice_oposto]})
 
 
 class Sala:
@@ -163,17 +175,30 @@ class Sala:
         self.cenas = [Cena(img) if isinstance(img, str) else img for img in [n, l, s, o]]
         self.norte, self.leste, self.sul, self.oeste = self.cenas
         self.nome = nome
+        Sala.c(**kwargs)
+        self.p()
+
+    def p(self):
         # [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
         for esquerda in range(4):
             cena_a_direita = (esquerda + 1) % 4
             self.cenas[esquerda].direita = self.cenas[cena_a_direita]
             self.cenas[cena_a_direita].esquerda = self.cenas[esquerda]
-        Sala.c(**kwargs)
 
     @staticmethod
     def c(**cenas):
-        for nome, imagem in cenas.items():
-            setattr(Sala, nome, Sala(*imagem, nome=nome))
+        for nome, cena in cenas.items():
+            setattr(Sala, nome, Sala(*cena, nome=nome))
+
+
+class Salao(Sala):
+
+    def p(self):
+        # [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
+        for esquerda in range(4):
+            cena_a_direita = (esquerda + 1) % 4
+            self.cenas[esquerda].portal(L=self.cenas[cena_a_direita])
+            self.cenas[cena_a_direita].portal(O=self.cenas[esquerda])
 
 
 class Cena:
@@ -229,8 +254,8 @@ class Cena:
             print(other)
 
     def portal(self, esquerda=None, direita=None, meio=None, **kwargs):
-        self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
-        return Portal()(self, **kwargs)
+        self.esquerda, self.direita, self.meio = esquerda or self.esquerda, direita or self.direita, meio or self.meio
+        return Portal(**kwargs)(self)
 
     @staticmethod
     def c(**cenas):
