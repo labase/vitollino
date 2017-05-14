@@ -6,6 +6,7 @@ class BrythonMock:
     def __init__(self, *_, **__):
         self.onclick = lambda: None
         self.text = None
+        self.elt = self
         self.style = MagicMock()
         self.head = MagicMock()
         a, b = MagicMock(), MagicMock()
@@ -19,6 +20,9 @@ class BrythonMock:
         return self
 
     def __call__(self, *args, **kwargs):
+        return self
+
+    def bind(self, *args, **kwargs):
         return self
 
     def __le__(self, other):
