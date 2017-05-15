@@ -28,7 +28,7 @@ Verifica a funcionalidade da biblioteca Vitollino.
 import unittest
 from _spy.vitollino import Cena, Jogo
 # from _spy.vitollino.vitollino import DOC_PYDIV
-from unittest.mock import MagicMock, ANY  # , patch
+from unittest.mock import MagicMock
 from _spy.vitollino import JOGO as j
 I = "_IMG_"
 MAPA = [["sala_"+s if s else "" for s in l.split(",")]
@@ -282,11 +282,11 @@ class SalaCDialogoTest(unittest.TestCase):
         """Cenas decorada com dialogo."""
         self._cria_cenas_sala()
         j.t.d(j.c.cfre, "UM", "DOIS")
-        j.t.POP.go = a = MagicMock(name="Open dialog")
+        j.t.POP._open = a = MagicMock(name="Open dialog")
         j.c.cfre.vai()
         assert j.t.POP.alt.text == "DOIS", j.t.POP.alt.text
         assert j.t.POP.tit.text == "UM", j.t.POP.tit.text
-        # a.click.assert_called_once_with()
+        a.assert_called_once_with()
 
     def test_decora_dialogo_classe(self):
         """Classe Cena decorada com dialogo."""
@@ -295,8 +295,9 @@ class SalaCDialogoTest(unittest.TestCase):
             elt = Cena()
             pass
         cc = ComBau(tit="UMA", txt="DUAS")
-        j.t.POP.go = a = self.uma
-        # cc.vai()
-        # assert j.t.POP.alt.text == "DUAS"
-        # assert j.t.POP.tit.text == "UMA"
-        # a.click.assert_called_once_with()
+        j.t.POP._open = a = self.uma
+        assert isinstance(cc, Cena), type(cc)
+        cc.vai()
+        assert j.t.POP.alt.text == "DUAS", j.t.POP.alt.text
+        assert j.t.POP.tit.text == "UMA", j.t.POP.tit.text
+        a.assert_called_once_with()
