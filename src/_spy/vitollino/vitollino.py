@@ -86,6 +86,16 @@ class Elemento:
     limbo = html.DIV(style=LSTYLE)
 
     def __init__(self, img="", act=None, style=NS, tit="", alt="", tel=DOC_PYDIV, **kwargs):
+        """
+        Representa um objeto
+        :param img: 
+        :param act: 
+        :param style: 
+        :param tit: 
+        :param alt: 
+        :param tel: 
+        :param kwargs: 
+        """
         self.img = img
         self.act = act if act else lambda _=0: None
         self.tela = tel
