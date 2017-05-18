@@ -199,8 +199,8 @@ class SalaTest(unittest.TestCase):
         d = j.s(n=j.c.dfre, l=j.c.desq, s=j.c.dfun, o=j.c.ddir)
         j.l(c, d, d, d, d)
         j.c.dfun.vai = self.uma
-        assert j.c.cfun.S == j.c.dfun
-        j.c.cfun.S()
+        assert j.c.cfun.N == j.c.dfun
+        j.c.cfun.N()
         j.c.dfun.vai.assert_called_once_with()
         j.c.cfre.vai = self.outra
         assert j.c.dfre.N == j.c.cfre

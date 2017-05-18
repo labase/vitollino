@@ -49,7 +49,6 @@ def singleton(class_):
         if class_ not in instances:
             instances[class_] = class_(*args, **kwargs)
         return instances[class_]
-
     return getinstance
 
 
@@ -76,28 +75,28 @@ class SalaCenaNula:
     def portal(self, *_, **__):
         pass
 
-
 NADA = SalaCenaNula().init()
 NS = {}
 NL = []
 
 
 class Elemento:
+    """
+    Representa um objeto que é representado por uma imagem em uma cena.
+
+    :param img: URL de uma imagem
+    :param vai: função executada quando se clica no objeto
+    :param style: dicionário com dimensões do objeto {"left": ..., "top": ..., width: ..., height: ...}
+    :param tit: Texto que aparece quando se passa o mouse sobre o objeto
+    :param alt: Texto para leitores de tela
+    :param tel: cena alternativa onde o objeto vai ser colocado
+    :param kwargs: lista de parametros nome=URL que geram elementos com este nome e a dada imagem
+    """
     limbo = html.DIV(style=LSTYLE)
 
-    def __init__(self, img="", act=None, style=NS, tit="", alt="", tel=DOC_PYDIV, **kwargs):
-        """
-        Representa um objeto
-        :param img: 
-        :param act: 
-        :param style: 
-        :param tit: 
-        :param alt: 
-        :param tel: 
-        :param kwargs: 
-        """
+    def __init__(self, img="", vai=None, style=NS, tit="", alt="", tel=DOC_PYDIV, **kwargs):
         self.img = img
-        self.act = act if act else lambda _=0: None
+        self.act = vai if vai else lambda _=0: None
         self.tela = tel
         self.opacity = 0
         self.style = dict(**PSTYLE)
@@ -144,7 +143,7 @@ class Portal:
                 style = ZSTYLE
                 super(CenaDecorada, self).__init__(*args, **kargs)
                 __portal.cena = self
-                [__portal.__setup__(cen, portal, style) for portal, cen in __portal.kwargs.items()]
+                [__portal.__setup__(cena, portal, style) for portal, cena in __portal.kwargs.items()]
 
         return CenaDecorada
 
@@ -163,7 +162,7 @@ class Portal:
         return self.cena
 
     def p(self, style=NS, **kwargs):
-        [self.__setup__(cena, portal, style) for portal, cena in kwargs.items()]
+        [self.__setup__(cena, portal, style) for portal, cena in kwargs.items() if cena != NADA]
         return self.cena
 
 
@@ -176,9 +175,9 @@ class Labirinto:
         self.salas = [sala for sala in [c, n, l, s, o]]
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
         for indice, sala in enumerate(self.salas[1:]):
-            self.centro.cenas[indice].portal(**{ROSA[indice]: sala.cenas[indice]})
+            self.centro.cenas[indice].portal(N=sala.cenas[indice])
             indice_oposto = (indice + 2) % 4
-            sala.cenas[indice_oposto].portal(**{ROSA[indice_oposto]: self.centro.cenas[indice_oposto]})
+            sala.cenas[indice_oposto].portal(N=self.centro.cenas[indice_oposto])
 
     @staticmethod
     def m(cenas):
@@ -605,15 +604,12 @@ class Jogo:
         self.droppable = self.r = Droppable
         pass
 
-
 JOGO = Jogo()
-
 
 def main():
     # Bloco()
     # CenaPrincipal()
     return Bloco()
-
 
 if "__main__" in __name__:
     main()
@@ -707,6 +703,5 @@ h1 {
 def __setup__():
     document.head <= html.STYLE(CSS, type="text/css", media="screen")
     Popup(Cena())
-
 
 __setup__()
