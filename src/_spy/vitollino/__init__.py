@@ -18,7 +18,13 @@
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
 from .vitollino import Cena
 from .vitollino import Sala
+from .vitollino import Salao
 from .vitollino import Labirinto
+from .vitollino import Elemento
+from .vitollino import Popup
 from .vitollino import INVENTARIO
-from .fachada import Jogo
+from .vitollino import Portal
+from .vitollino import Droppable
+from .vitollino import Dropper
+from .fachada import Jogo, JOGO
 __all__ = ["vitollino"]
