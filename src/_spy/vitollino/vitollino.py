@@ -20,12 +20,12 @@
 Gerador de labirintos e jogos tipo 'novel'.
 """
 from browser import document, html
-
+SZ = dict(W=300, H=300)
 DOC_PYDIV = document["pydiv"]
 ppcss = 'https://codepen.io/imprakash/pen/GgNMXO'
-STYLE = {'position': "absolute", 'width': 300, 'left': 0, 'top': 0, 'background': "white"}
-PSTYLE = {'position': "absolute", 'width': 300, 'left': 0, 'bottom': 0, 'background': "white"}
-LIMBOSTYLE = {'position': "absolute", 'width': 300, 'left': 10000, 'bottom': 0, 'background': "white"}
+STYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'top': 0, 'background': "white"}
+PSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'bottom': 0, 'background': "white"}
+LIMBOSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
 ESTYLE = {'opacity': "inherited", 'width': 30, 'height': 30, 'min-height': '30px', 'float': 'left', 'position': 'unset'}
 STYLE["min-height"] = "300px"
@@ -49,6 +49,7 @@ def singleton(class_):
         if class_ not in instances:
             instances[class_] = class_(*args, **kwargs)
         return instances[class_]
+
     return getinstance
 
 
@@ -74,6 +75,7 @@ class SalaCenaNula:
 
     def portal(self, *_, **__):
         pass
+
 
 NADA = SalaCenaNula().init()
 NS = {}
@@ -143,7 +145,7 @@ class Portal:
                 style = ZSTYLE
                 super(CenaDecorada, self).__init__(*args, **kargs)
                 __portal.cena = self
-                [__portal.__setup__(cena, portal, style) for portal, cena in __portal.kwargs.items()]
+                [__portal.__setup__(acena, portal, style) for portal, acena in __portal.kwargs.items()]
 
         return CenaDecorada
 
@@ -243,34 +245,35 @@ class Cena:
     """
 
     def __init__(self, img=IMAGEM, esquerda=NADA, direita=NADA, meio=NADA, vai=None, nome='', **kwargs):
+        width = STYLE["width"]
         self.img = img
         self.nome = nome
         self.dentro = []
         self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
         self.vai = vai or self.vai
         self.elt = html.DIV(style=STYLE)
-        self.elt <= html.IMG(src=self.img, width=300, style=STYLE, title=nome)
+        self.elt <= html.IMG(src=self.img, width=width, style=STYLE, title=nome)
         Cena.c(**kwargs)
 
         self.divesq = divesq = html.DIV(style=STYLE)
         divesq.style.opacity = 0
-        divesq.style.width = 100
+        divesq.style.width = width//3  # 100
         Droppable(divesq, cursor="not-allowed")
         divesq.onclick = self.vai_esquerda
 
         self.divmeio = divmeio = html.DIV(style=STYLE)
         divmeio.style.opacity = 0
-        divmeio.style.width = 100
+        divmeio.style.width = width//3  # 100
         divmeio.onclick = self.vai_meio
         Droppable(divmeio, cursor="not-allowed")
-        divmeio.style.left = 100
+        divmeio.style.left = width//3  # 100
 
         self.divdir = divdir = html.DIV(style=STYLE)
         divdir.style.opacity = 0
-        divdir.style.width = 100
+        divdir.style.width = width//3  # 100
         divdir.onclick = self.vai_direita
         Droppable(divdir, cursor="not-allowed")
-        divdir.style.left = 200
+        divdir.style.left = width*2//3  # 100
         self.elt <= self.divesq
         self.elt <= self.divmeio
         self.elt <= self.divdir
@@ -604,12 +607,15 @@ class Jogo:
         self.droppable = self.r = Droppable
         pass
 
+
 JOGO = Jogo()
+
 
 def main():
     # Bloco()
     # CenaPrincipal()
     return Bloco()
+
 
 if "__main__" in __name__:
     main()
@@ -703,5 +709,6 @@ h1 {
 def __setup__():
     document.head <= html.STYLE(CSS, type="text/css", media="screen")
     Popup(Cena())
+
 
 __setup__()
