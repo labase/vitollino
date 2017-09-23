@@ -54,25 +54,30 @@ IMG = dict(
     A_LESTE="https://i.imgur.com/sivjAnO.png",
     A_SUL="https://i.imgur.com/otHJhF0.png",
 
-    B_NORTE="https://i.imgur.com/40K5493.png",
-    B_LESTE="https://i.imgur.com/R3bpFXD.png",
-    B_OESTE="https://i.imgur.com/dlxY8hi.png",
-    B_SUL="https://i.imgur.com/eYM3Yp9.png",
+    B_NORTE="https://i.imgur.com/40K5493.png",    B_LESTE="https://i.imgur.com/R3bpFXD.png",
+    B_OESTE="https://i.imgur.com/dlxY8hi.png",    B_SUL="https://i.imgur.com/eYM3Yp9.png",
 
-    C_LESTE="https://i.imgur.com/94V79TA.png",
-    C_NORTE="https://i.imgur.com/YJfnhy9.png",
-    C_OESTE="https://i.imgur.com/Fzz2FNz.png",
-    C_SUL="https://i.imgur.com/LFKXlB1.png",
+    C_LESTE="https://i.imgur.com/94V79TA.png",    C_NORTE="https://i.imgur.com/YJfnhy9.png",
+    C_OESTE="https://i.imgur.com/Fzz2FNz.png",    C_SUL="https://i.imgur.com/LFKXlB1.png",
 
-    D_NORTE="http://i.imgur.com/1uWH7rU.png",
-    D_LESTE="https://i.imgur.com/b0FcjLq.png",
-    D_OESTE="https://i.imgur.com/406g75C.png",
-    D_SUL="https://i.imgur.com/HQBtUoQ.png",
+    D_NORTE="http://i.imgur.com/1uWH7rU.png",     D_LESTE="https://i.imgur.com/b0FcjLq.png",
+    D_OESTE="https://i.imgur.com/406g75C.png",    D_SUL="https://i.imgur.com/HQBtUoQ.png",
 
-    H_NORTE="https://i.imgur.com/WjTtZPn.png",
-    H_LESTE="https://i.imgur.com/AzvB8hs.png",
-    H_OESTE="https://i.imgur.com/SIhLGCP.png",
-    H_SUL="https://i.imgur.com/UVnpzzE.png",
+    E_NORTE="https://i.imgur.com/uNkTVGg.png",    E_SUL = "http://i.imgur.com/bculg4O.png",
+    E_LESTE="https://i.imgur.com/lUi1E1v.png",    E_OESTE = "https://i.imgur.com/bPBT1d7.png",
+
+    H_NORTE="https://i.imgur.com/WjTtZPn.png",    H_LESTE="https://i.imgur.com/AzvB8hs.png",
+    H_OESTE="https://i.imgur.com/SIhLGCP.png",    H_SUL="https://i.imgur.com/UVnpzzE.png",
+
+    I_NORTE="https://i.imgur.com/RSdQSH1.png",    I_SUL = "https://i.imgur.com/UGCRJ0d.png",
+    I_LESTE="https://i.imgur.com/jSn4zsl.png",    I_OESTE= "https://i.imgur.com/eG43vn5.png",
+
+    J_NORTE="https://i.imgur.com/MMO11Dv.png",    J_SUL = "https://i.imgur.com/RkWPb8Z.png",
+    J_LESTE="https://i.imgur.com/btv0qfO.png",    J_OESTE= "https://i.imgur.com/lDezYKu.png",
+
+    K_NORTE="https://i.imgur.com/Tx9Q6vW.png",    K_SUL="https://i.imgur.com/rrI94Xh.png",
+    K_LESTE="https://i.imgur.com/R6gON2E.png",    K_OESTE="https://i.imgur.com/Mn69uua.png",
+
 )
 
 H_SALA = [H_NORTE, H_LESTE, H_SUL, H_OESTE]
@@ -127,12 +132,52 @@ def criarsalab():
 
 
 def cria_lab():
-    # j.c.c(cfre=B_NORTE, cesq=B_OESTE, cdir=B_LESTE, cfun=B_SUL, cbau="_IMG_")
-    j.c.c(**{"c" + k: IMG["B_" + v] for k, v in zip("fre dir fun esq".split(), "LESTE SUL OESTE NORTE".split())})
-    j.c.s(j.c.cfre, j.c.cesq, j.c.cfun, j.c.cdir)
-    j.c.cfre.vai()
+    j.c.c(cfre=B_NORTE, cesq=B_OESTE, cdir=B_LESTE, cfun=B_SUL, cbau="_IMG_")
+    # j.c.c(**{"c" + k: IMG["B_" + v] for k, v in zip("fre dir fun esq".split(), "LESTE SUL OESTE NORTE".split())})
+    j.c.c(**SCENES)
+    print([attr for attr in dir(j.c) if "MANSÃO_HALL" in attr])
+    salas = {nome: [getattr(j.c, lado) for lado in lados if hasattr(j.c, lado)] for nome, lados in ROOMS.items()}
+    print(salas)
+    # salas = {nome: [j.c.__getattribute__(lado) for lado in lados] for nome, lados in ROOMS.items()}
+
+    # j.c.s(j.c.MANSÃO_HALL_LESTE, j.c.MANSÃO_HALL_SUL, j.c.MANSÃO_HALL_OESTE, j.c.MANSÃO_HALL_NORTE)
+    # j.c.MANSÃO_HALL_LESTE.vai()
+    j.s.c(**salas)
+    chambers = [[getattr(j.s, NOME[ch]) if hasattr(j.s, ch) else None for ch in line] for line in MAP]
+    j.l.m(chambers)
+    j.s.MANSÃO_HALL.leste.vai()
 
 
 def main():
     # criarsalab()
     cria_lab()
+
+
+NOMES = """SALA A - FACHADA
+    SALA B - HALL
+    SALA C - SALA DE ESTAR
+    SALA D - CENA DO CRIME
+    SALA H - A CHAVE
+    SALA I - FOLHA DE CADERNO
+    SALA J - BLOQUEIO
+    SALA E - DESPENSA
+    SALA K - PANO ENSANGUENTADO
+    SALA L - ESCURIDÃO
+    SALA F - ENTRADA DO QUARTO
+    SALA G - QUARTO
+    SALA N - SALA DE TV
+    SALA Q - SALA DE JANTAR
+    SALA R - COZINHA
+    SALA P - CORREDOR
+    SALA O - SALA DE VIGILÂNCIA
+    SALA M - ARMA DO CRIME""".split("\n")
+NOME = {line.split(" - ")[0].split()[-1]: line.split(" - ")[1].replace(" ", "_") for line in NOMES}
+ROOMS = {"MANSÃO_%s" % NOME[room]: ["MANSÃO_%s_%s" % (NOME[room], k) for k in "LESTE SUL OESTE NORTE".split()]
+         for room in NOME.keys()}
+SCENES = {"MANSÃO_%s_%s" % (NOME[room], k): IMG["%s_%s" % (room, k)]
+          for k in "LESTE SUL OESTE NORTE".split() for room in NOME.keys() if "%s_%s" % (room, k) in IMG}
+MAP = """ABC
+--D-E-FG
+--HIJKL
+----M-N
+----OPQR"""

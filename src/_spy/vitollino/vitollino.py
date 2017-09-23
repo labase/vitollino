@@ -225,6 +225,11 @@ class Salao(Sala):
             self.cenas[esquerda].portal(L=self.cenas[cena_a_direita])
             self.cenas[cena_a_direita].portal(O=self.cenas[esquerda])
 
+    @staticmethod
+    def c(**cenas):
+        for nome, cena in cenas.items():
+            setattr(Salao, nome, Salao(*cena, nome=nome))
+
 
 class Cena:
     """
@@ -298,8 +303,12 @@ class Cena:
             setattr(Cena, nome, Cena(imagem, nome=nome))
 
     @staticmethod
-    def s(n=NADA, l=NADA, s=NADA, o=NADA, nome="", **kwargs):
+    def q(n=NADA, l=NADA, s=NADA, o=NADA, nome="", **kwargs):
         return Sala(n, l, s, o, nome=nome, **kwargs)
+
+    @staticmethod
+    def s(n=NADA, l=NADA, s=NADA, o=NADA, nome="", **kwargs):
+        return Salao(n, l, s, o, nome=nome, **kwargs)
 
     def vai_direita(self, _=0):
         if self.direita:
