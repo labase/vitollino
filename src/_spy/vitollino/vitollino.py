@@ -186,10 +186,13 @@ class Labirinto:
 
     @staticmethod
     def m(cenas):
+        def valid(cns, jj, ii, m, n):
+            return 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj+m])and cns[jj + m][ii + n]
+
         def vizinhos(jj, ii, cns=cenas):
-            return [(kk, cns[jj + m][ii + n]) for kk, (m, n) in enumerate(CART) if 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj+m])and cns[jj + m][ii + n]]
-
-
+            return [(kk, cns[jj + m][ii + n]) for kk, (m, n) in enumerate(CART) if valid(cns, jj, ii, m, n)]
+            # return [(kk, cns[jj + m][ii + n]) for kk, (m, n) in enumerate(CART)
+            #  if 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj+m])and cns[jj + m][ii + n]]
 
         for j, linha in enumerate(cenas):
             if isinstance(linha, list):

@@ -54,29 +54,29 @@ IMG = dict(
     A_LESTE="https://i.imgur.com/sivjAnO.png",
     A_SUL="https://i.imgur.com/otHJhF0.png",
 
-    B_NORTE="https://i.imgur.com/40K5493.png",    B_LESTE="https://i.imgur.com/R3bpFXD.png",
-    B_OESTE="https://i.imgur.com/dlxY8hi.png",    B_SUL="https://i.imgur.com/eYM3Yp9.png",
+    B_NORTE="https://i.imgur.com/40K5493.png", B_LESTE="https://i.imgur.com/R3bpFXD.png",
+    B_OESTE="https://i.imgur.com/dlxY8hi.png", B_SUL="https://i.imgur.com/eYM3Yp9.png",
 
-    C_LESTE="https://i.imgur.com/94V79TA.png",    C_NORTE="https://i.imgur.com/YJfnhy9.png",
-    C_OESTE="https://i.imgur.com/Fzz2FNz.png",    C_SUL="https://i.imgur.com/LFKXlB1.png",
+    C_LESTE="https://i.imgur.com/94V79TA.png", C_NORTE="https://i.imgur.com/YJfnhy9.png",
+    C_OESTE="https://i.imgur.com/Fzz2FNz.png", C_SUL="https://i.imgur.com/LFKXlB1.png",
 
-    D_NORTE="http://i.imgur.com/1uWH7rU.png",     D_LESTE="https://i.imgur.com/b0FcjLq.png",
-    D_OESTE="https://i.imgur.com/406g75C.png",    D_SUL="https://i.imgur.com/HQBtUoQ.png",
+    D_NORTE="http://i.imgur.com/1uWH7rU.png", D_LESTE="https://i.imgur.com/b0FcjLq.png",
+    D_OESTE="https://i.imgur.com/406g75C.png", D_SUL="https://i.imgur.com/HQBtUoQ.png",
 
-    E_NORTE="https://i.imgur.com/uNkTVGg.png",    E_SUL = "http://i.imgur.com/bculg4O.png",
-    E_LESTE="https://i.imgur.com/lUi1E1v.png",    E_OESTE = "https://i.imgur.com/bPBT1d7.png",
+    E_NORTE="https://i.imgur.com/uNkTVGg.png", E_SUL="http://i.imgur.com/bculg4O.png",
+    E_LESTE="https://i.imgur.com/lUi1E1v.png", E_OESTE="https://i.imgur.com/bPBT1d7.png",
 
-    H_NORTE="https://i.imgur.com/WjTtZPn.png",    H_LESTE="https://i.imgur.com/AzvB8hs.png",
-    H_OESTE="https://i.imgur.com/SIhLGCP.png",    H_SUL="https://i.imgur.com/UVnpzzE.png",
+    H_NORTE="https://i.imgur.com/WjTtZPn.png", H_LESTE="https://i.imgur.com/AzvB8hs.png",
+    H_OESTE="https://i.imgur.com/SIhLGCP.png", H_SUL="https://i.imgur.com/UVnpzzE.png",
 
-    I_NORTE="https://i.imgur.com/RSdQSH1.png",    I_SUL = "https://i.imgur.com/UGCRJ0d.png",
-    I_LESTE="https://i.imgur.com/jSn4zsl.png",    I_OESTE= "https://i.imgur.com/eG43vn5.png",
+    I_NORTE="https://i.imgur.com/RSdQSH1.png", I_SUL="https://i.imgur.com/UGCRJ0d.png",
+    I_LESTE="https://i.imgur.com/jSn4zsl.png", I_OESTE="https://i.imgur.com/eG43vn5.png",
 
-    J_NORTE="https://i.imgur.com/MMO11Dv.png",    J_SUL = "https://i.imgur.com/RkWPb8Z.png",
-    J_LESTE="https://i.imgur.com/btv0qfO.png",    J_OESTE= "https://i.imgur.com/lDezYKu.png",
+    J_NORTE="https://i.imgur.com/MMO11Dv.png", J_SUL="https://i.imgur.com/RkWPb8Z.png",
+    J_LESTE="https://i.imgur.com/btv0qfO.png", J_OESTE="https://i.imgur.com/lDezYKu.png",
 
-    K_NORTE="https://i.imgur.com/Tx9Q6vW.png",    K_SUL="https://i.imgur.com/rrI94Xh.png",
-    K_LESTE="https://i.imgur.com/R6gON2E.png",    K_OESTE="https://i.imgur.com/Mn69uua.png",
+    K_NORTE="https://i.imgur.com/Tx9Q6vW.png", K_SUL="https://i.imgur.com/rrI94Xh.png",
+    K_LESTE="https://i.imgur.com/R6gON2E.png", K_OESTE="https://i.imgur.com/Mn69uua.png",
 
 )
 
@@ -143,9 +143,11 @@ def cria_lab():
     # j.c.s(j.c.MANSÃO_HALL_LESTE, j.c.MANSÃO_HALL_SUL, j.c.MANSÃO_HALL_OESTE, j.c.MANSÃO_HALL_NORTE)
     # j.c.MANSÃO_HALL_LESTE.vai()
     j.s.c(**salas)
-    und = lambda ch: NOME[ch].replace(" ", "_") if ch in NOME else "_NOOO_"
+    und = lambda ch: "MANSÃO_%s" % NOME[ch].replace(" ", "_") if ch in NOME else "_NOOO_"
     chambers = [[getattr(j.s, und(ch)) if hasattr(j.s, und(ch)) else None for ch in line] for line in MAP]
-    print([c.name for c in chambers])
+    print("chambers = ", dir(j.s))
+    print("chambers = ", [[und(ch) for ch in line] for line in MAP])
+    print("chambers = ", [c.nome for line in chambers for c in line if c])
     j.l.m(chambers)
     j.s.MANSÃO_HALL.leste.vai()
 
@@ -154,7 +156,7 @@ def main():
     # criarsalab()
     cria_lab()
     pass
-'''
+
 
 NOMES = """SALA A - FACHADA
     SALA B - HALL
@@ -179,9 +181,9 @@ ROOMS = {"MANSÃO_%s" % NOME[room]: ["MANSÃO_%s_%s" % (NOME[room], k) for k in 
          for room in NOME.keys()}
 SCENES = {"MANSÃO_%s_%s" % (NOME[room], k): IMG["%s_%s" % (room, k)]
           for k in "LESTE SUL OESTE NORTE".split() for room in NOME.keys() if "%s_%s" % (room, k) in IMG}
-MAP = """ABC
+MAP = """
+ABC
 --D-E-FG
 --HIJKL
 ----M-N
-----OPQR"""
-'''
+----OPQR"""[1:]
