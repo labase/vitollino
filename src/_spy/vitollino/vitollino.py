@@ -40,6 +40,7 @@ OSTYLE = {'position': "absolute", 'width': "10%", 'left': 0, 'top': "20%", 'marg
           "min-height": "60%", "cursor": "w-resize"}
 ZSTYLE = {'position': "absolute", 'width': "10%", 'margin': "0%",
           "min-height": "10%", "cursor": "zoom-in"}
+INVENTARIO = None
 
 
 def singleton(class_):
@@ -59,6 +60,8 @@ class SalaCenaNula:
         self.esquerda, self.direita = [None] * 2
         self.salas = [None] * 5
         self.cenas = [self] * 4
+        self.img = "_NO_IMG_"
+        self.nome = "_NO_NAME_"
         self.init = self.init
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
 
@@ -169,7 +172,7 @@ class Portal:
 
 
 ROSA = list("NLSO")
-CART = [(0, -1), (1, 0), (0, -1), (-1, 0)]
+CART = [(-1, 0), (0, 1), (1, 0), (0, -1)]  # [(i, j) for j, i in CART]
 
 
 class Labirinto:
@@ -183,26 +186,56 @@ class Labirinto:
 
     @staticmethod
     def m(cenas):
-        def vizinhos(ii, jj, cns=cenas):
-            return [cns[ii + m][jj + n] if 0 <= ii + m < len(cns) and 0 <= jj + n < len(cns[ii + m]) else NADA for m, n
-                    in CART]
+        def vizinhos(jj, ii, cns=cenas):
+            return [(kk, cns[jj + m][ii + n]) for kk, (m, n) in enumerate(CART) if 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj+m])and cns[jj + m][ii + n]]
 
-        for i, linha in enumerate(cenas):
+
+
+        for j, linha in enumerate(cenas):
             if isinstance(linha, list):
-                for j, centro in enumerate(linha):
-                    for k, sala in enumerate(vizinhos(i, j)):
-                        centro.cenas[k].portal(**{ROSA[k]: sala.cenas[k]})
+                for i, centro in enumerate(linha):
+                    if not isinstance(centro, Sala):
+                        continue
+                    for k, sala in vizinhos(j, i):
+                        if not isinstance(sala, Sala):
+                            continue
+                        centro.cenas[k].portal(**{"N": sala.cenas[k]})
                         indice_oposto = (k + 2) % 4
-                        sala.cenas[indice_oposto].portal(**{ROSA[indice_oposto]: centro.cenas[indice_oposto]})
+                        sala.cenas[indice_oposto].portal(**{"N": centro.cenas[indice_oposto]})
 
 
 class Sala:
     def __init__(self, n=NADA, l=NADA, s=NADA, o=NADA, nome='', **kwargs):
+        class Reference:
+            def __init__(self, val, index):
+                self._value, self._index = val, index
+
+            def __get__(self, instance, owner):
+                return self._value[self._index]
+
+            def __set__(self, val):
+                self._value[self._index] = val
         self.cenas = [Cena(img) if isinstance(img, str) else img for img in [n, l, s, o]]
-        self.norte, self.leste, self.sul, self.oeste = self.cenas
+        # self.norte, self.leste, self.sul, self.oeste = [Reference(self.cenas, index) for index in range(0, 4)]
         self.nome = nome
         Sala.c(**kwargs)
         self.p()
+
+    @property
+    def norte(self):
+        return self.cenas[0]
+
+    @property
+    def leste(self):
+        return self.cenas[1]
+
+    @property
+    def sul(self):
+        return self.cenas[2]
+
+    @property
+    def oeste(self):
+        return self.cenas[3]
 
     def p(self):
         # [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
@@ -255,6 +288,7 @@ class Cena:
         self.nome = nome
         self.dentro = []
         self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
+        self.N, self.O, self.L = [NADA] * 3
         self.vai = vai or self.vai
         self.elt = html.DIV(style=STYLE)
         self.elt <= html.IMG(src=self.img, width=width, style=STYLE, title=nome)

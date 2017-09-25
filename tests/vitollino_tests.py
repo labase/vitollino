@@ -67,7 +67,7 @@ class CenaTest(unittest.TestCase):
     def test_sala_nomeado(self):
         """Monta salas usando direções nomeadas."""
         sala = j.c.s(n=I, s=I, sala_c=(I, I, I, I))
-        outrasala = j.c.s(s=sala.sul, l=self.gui, sala_d=(I, I, j.s.sala_c.sul, sala.norte))
+        outrasala = j.c.q(s=sala.sul, l=self.gui, sala_d=(I, I, j.s.sala_c.sul, sala.norte))
         assert sala.norte
         assert outrasala.norte
         assert j.s.sala_c.norte
@@ -214,8 +214,8 @@ class SalaTest(unittest.TestCase):
         d = j.s(n=j.c.efre, l=j.c.eesq, s=j.c.efun, o=j.c.edir)
         j.l.m([[c, d], [d, c]])
         j.c.efun.vai = self.uma
-        assert j.c.cfun.S == j.c.efun
-        j.c.cfun.S()
+        assert j.c.cfun.N == j.c.efun
+        j.c.cfun.N()
         j.c.efun.vai.assert_called_once_with()
         j.c.cfre.vai = self.outra
         assert j.c.efre.N == j.c.cfre
@@ -231,7 +231,7 @@ class SalaCTest(unittest.TestCase):
     def _cria_cenas_sala(self):
         """Cenas e sala c criadas."""
         j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
-        j.c.s(j.c.cfre, self.uma, j.c.cfun, j.c.cdir)
+        j.c.q(j.c.cfre, self.uma, j.c.cfun, j.c.cdir)
 
     def test_cria_cenas_sala(self):
         """Cenas e sala c criadas."""
@@ -301,3 +301,30 @@ class SalaCDialogoTest(unittest.TestCase):
         assert j.t.POP.alt.text == "DUAS", j.t.POP.alt.text
         assert j.t.POP.tit.text == "UMA", j.t.POP.tit.text
         a.assert_called_once_with()
+
+
+class LabirintoTest(unittest.TestCase):
+    def setUp(self):
+        j.s.c(**{"sala%s" % k: ["sala%s_%s" % (k, v) for v in list("nlso")] for k in list("cnlso")})
+
+    def _cria_cenas_sala(self):
+        """Cenas e sala c criadas."""
+        j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
+        j.c.s(j.c.cfre, self.uma, j.c.cfun, j.c.cdir)
+
+    def test_labirinto_cruz(self):
+        """Labirinto em Cruz."""
+        # lab = j.l(self.cen, self.nor, self.les, self.sul, self.oes)
+        lab = j.l(*[getattr(j.s, "sala%s" % k) for k in list("cnlso")])
+        labnn = lab.centro.norte.N
+        assert labnn == j.s.salan.norte, "%s != %s" % (labnn.img, j.s.salan.norte.img)
+
+    def test_labirinto_mapa(self):
+        """Labirinto em Mapa."""
+        # lab = j.l(self.cen, self.nor, self.les, self.sul, self.oes)
+        c, n, l, s, o = [getattr(j.s, "sala%s" % k) for k in list("cnlso")]
+        maper = [[c, n, l], [None, s, o]]
+        j.l.m(maper)
+        labnn = s.norte.N.img, n.sul.N.img, s.leste.N.img, o.oeste.N.img, o.norte.N.img, l.sul.N.img, l.oeste.N.img
+        labdest = n.norte.img, s.sul.img, o.leste.img, s.oeste.img, l.norte.img, o.sul.img, n.oeste.img
+        assert labnn == labdest, "%s != %s" % (labnn, labdest)

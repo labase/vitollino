@@ -143,7 +143,9 @@ def cria_lab():
     # j.c.s(j.c.MANSÃO_HALL_LESTE, j.c.MANSÃO_HALL_SUL, j.c.MANSÃO_HALL_OESTE, j.c.MANSÃO_HALL_NORTE)
     # j.c.MANSÃO_HALL_LESTE.vai()
     j.s.c(**salas)
-    chambers = [[getattr(j.s, NOME[ch]) if hasattr(j.s, ch) else None for ch in line] for line in MAP]
+    und = lambda ch: NOME[ch].replace(" ", "_") if ch in NOME else "_NOOO_"
+    chambers = [[getattr(j.s, und(ch)) if hasattr(j.s, und(ch)) else None for ch in line] for line in MAP]
+    print([c.name for c in chambers])
     j.l.m(chambers)
     j.s.MANSÃO_HALL.leste.vai()
 
@@ -151,7 +153,8 @@ def cria_lab():
 def main():
     # criarsalab()
     cria_lab()
-
+    pass
+'''
 
 NOMES = """SALA A - FACHADA
     SALA B - HALL
@@ -181,3 +184,4 @@ MAP = """ABC
 --HIJKL
 ----M-N
 ----OPQR"""
+'''
