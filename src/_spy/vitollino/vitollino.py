@@ -20,6 +20,7 @@
 Gerador de labirintos e jogos tipo 'novel'.
 """
 from browser import document, html
+
 SZ = dict(W=300, H=300)
 DOC_PYDIV = document["pydiv"]
 ppcss = 'https://codepen.io/imprakash/pen/GgNMXO'
@@ -187,7 +188,7 @@ class Labirinto:
     @staticmethod
     def m(cenas):
         def valid(cns, jj, ii, m, n):
-            return 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj+m])and cns[jj + m][ii + n]
+            return 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj + m]) and cns[jj + m][ii + n]
 
         def vizinhos(jj, ii, cns=cenas):
             return [(kk, cns[jj + m][ii + n]) for kk, (m, n) in enumerate(CART) if valid(cns, jj, ii, m, n)]
@@ -218,6 +219,7 @@ class Sala:
 
             def __set__(self, val):
                 self._value[self._index] = val
+
         self.cenas = [Cena(img) if isinstance(img, str) else img for img in [n, l, s, o]]
         # self.norte, self.leste, self.sul, self.oeste = [Reference(self.cenas, index) for index in range(0, 4)]
         self.nome = nome
@@ -297,25 +299,26 @@ class Cena:
         self.elt <= html.IMG(src=self.img, width=width, style=STYLE, title=nome)
         Cena.c(**kwargs)
 
+        self._cria_divs(width)
+
+    def _cria_divs(self, width):
         self.divesq = divesq = html.DIV(style=STYLE)
         divesq.style.opacity = 0
-        divesq.style.width = width//3  # 100
+        divesq.style.width = width // 3  # 100
         Droppable(divesq, cursor="not-allowed")
         divesq.onclick = self.vai_esquerda
-
         self.divmeio = divmeio = html.DIV(style=STYLE)
         divmeio.style.opacity = 0
-        divmeio.style.width = width//3  # 100
+        divmeio.style.width = width // 3  # 100
         divmeio.onclick = self.vai_meio
         Droppable(divmeio, cursor="not-allowed")
-        divmeio.style.left = width//3  # 100
-
+        divmeio.style.left = width // 3  # 100
         self.divdir = divdir = html.DIV(style=STYLE)
         divdir.style.opacity = 0
-        divdir.style.width = width//3  # 100
+        divdir.style.width = width // 3  # 100
         divdir.onclick = self.vai_direita
         Droppable(divdir, cursor="not-allowed")
-        divdir.style.left = width*2//3  # 100
+        divdir.style.left = width * 2 // 3  # 100
         self.elt <= self.divesq
         self.elt <= self.divmeio
         self.elt <= self.divdir
