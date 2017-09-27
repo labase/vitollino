@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-        <title>Superpython : sherlock-main.py</title>
+        <title>Superpython : Jogo do Detetive</title>
         <link rel="stylesheet" href="/style.css" type="text/css" />
         <meta http-equiv="content-type" content="application/xml;charset=utf-8" />
         <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
@@ -13,17 +13,24 @@
             from lab.main import main
             main()
         </script>
+        <style>
+            .center {
+               width: 1000px;
+               height: 800px;
+               position: absolute;
+               left: 50%;
+               top: 50%;
+               margin-left: -500px;
+               margin-top: -400px;
+            }
+            .ncenter {
+              display: table-cell;
+              vertical-align: middle;
+            }
+        </style>
     </head>
-    <body onLoad="brython({debug:1, cache:'browser', static_stdlib_import:true})" background="/images/pipe_back.jpg">
-           <div id="pydiv"  title="" style="width: 100%;
-                height: 100%;
-                position: absolute;
-                top:0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-
-                margin: auto;">
+    <body onLoad="brython({debug:1, cache:'browser', static_stdlib_import:true})" bgcolor= darkslategray>
+           <div id="pydiv" class="center" title="">
                 <span style="color:white">LOADING..</span>
            </div>
     </body>

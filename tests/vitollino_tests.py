@@ -95,7 +95,7 @@ class CenaTest(unittest.TestCase):
         self.meio.elt.__le__ = self.pdiv
         a = Acena("img")
         assert hasattr(a, "elt"), a
-        assert a.N == self.meio
+        assert a.N == self.meio, "%s != %s" % (a.N.img, self.meio.img)
         assert a.S == self.app
         b = Acena("img")
         assert hasattr(b, "elt")
@@ -307,24 +307,38 @@ class LabirintoTest(unittest.TestCase):
     def setUp(self):
         j.s.c(**{"sala%s" % k: ["sala%s_%s" % (k, v) for v in list("nlso")] for k in list("cnlso")})
 
-    def _cria_cenas_sala(self):
-        """Cenas e sala c criadas."""
-        j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
-        j.c.s(j.c.cfre, self.uma, j.c.cfun, j.c.cdir)
-
     def test_labirinto_cruz(self):
         """Labirinto em Cruz."""
-        # lab = j.l(self.cen, self.nor, self.les, self.sul, self.oes)
         lab = j.l(*[getattr(j.s, "sala%s" % k) for k in list("cnlso")])
         labnn = lab.centro.norte.N
         assert labnn == j.s.salan.norte, "%s != %s" % (labnn.img, j.s.salan.norte.img)
 
-    def test_labirinto_mapa(self):
+    def _labirinto_mapa(self):
         """Labirinto em Mapa."""
-        # lab = j.l(self.cen, self.nor, self.les, self.sul, self.oes)
         c, n, l, s, o = [getattr(j.s, "sala%s" % k) for k in list("cnlso")]
         maper = [[c, n, l], [None, s, o]]
         j.l.m(maper)
         labnn = s.norte.N.img, n.sul.N.img, s.leste.N.img, o.oeste.N.img, o.norte.N.img, l.sul.N.img, l.oeste.N.img
         labdest = n.norte.img, s.sul.img, o.leste.img, s.oeste.img, l.norte.img, o.sul.img, n.oeste.img
+        return labnn, labdest
+
+    def test_labirinto_mapa(self):
+        """Labirinto em Mapa."""
+        labnn, labdest = self._labirinto_mapa()
+        sala_a, sala_b = j.s.salas, j.s.salan
+        sala_a.norte.vai()
+        assert j.i.cena == sala_a.norte, "cena inicial é %s e não %s" % (j.i.cena, sala_a.norte)
+        sala_a.norte.N()
+        assert j.i.cena == sala_b.norte, "cena atual é %s e não %s" % (j.i.cena.img, sala_b.norte.img)
+        assert labnn == labdest, "%s != %s" % (labnn, labdest)
+
+    def test_labirinto_mapa_bloqueado(self):
+        """Labirinto em Mapa com Bloqueios."""
+        labnn, labdest = self._labirinto_mapa()
+        sala_a, sala_b = j.s.salas, j.s.salan
+        sala_a.norte.vai()
+        assert j.i.cena == sala_a.norte, "cena inicial é %s e não %s" % (j.i.cena, sala_a.norte)
+        sala_a.norte.N.fecha()
+        sala_a.norte.N()
+        assert j.i.cena == sala_a.norte, "cena atual é %s e não %s" % (j.i.cena, sala_b.norte)
         assert labnn == labdest, "%s != %s" % (labnn, labdest)

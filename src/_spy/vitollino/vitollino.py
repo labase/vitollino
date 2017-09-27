@@ -154,17 +154,41 @@ class Portal:
         return CenaDecorada
 
     def __setup__(self, cena, portal, style=NS):
+        class Portico:
+            def __init__(self, origem, destino, portal_, style_):
+                self.origem, self.destino, self.portal_, self.style_ = origem, destino, portal_, style_
+                self.elt = html.DIV(style=self.style_)
+                self.elt.onclick = lambda *_: self.vai()
+                Droppable(self.elt, cursor="not-allowed")
+                if isinstance(self.origem, Cena):
+                    self.origem.elt <= self.elt
+                    setattr(self.origem, portal, self)
+                self._vai = self.vai
+
+            def __call__(self, *args, **kwargs):
+                return self.vai(*args)
+
+            def fecha(self, *_):
+                self.vai = lambda *_: None
+
+            def abre(self, *_):
+                self.vai = self._vai
+
+            def vai(self, *_):
+                return self.destino.vai()
+
+            @property
+            def img(self):
+                return self.destino.img
+
+            def __eq__(self, other):
+                return other == self.destino
         _ = style.update({"min-height": style["height"]}) if "height" in style else None
         sty = Portal.PORTAIS.get(portal, ZSTYLE)
         self.style.update(sty)
         self.style.update(style)
-        self.elt = html.DIV(style=self.style)
-        self.elt.onclick = lambda _=0: cena.vai()
-        Droppable(self.elt, cursor="not-allowed")
-        if isinstance(self.cena, Cena):
-            self.cena.elt <= self.elt
-            setattr(self.cena, portal, cena)
-            self.__call__ = cena.vai
+        ptc = Portico(self.cena, cena, portal, self.style)
+        self.elt = ptc.elt
         return self.cena
 
     def p(self, style=NS, **kwargs):

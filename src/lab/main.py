@@ -19,11 +19,12 @@
 """
 Gerador de labirintos e jogos tipo 'novel'.
 """
-from _spy.vitollino.vitollino import STYLE
+from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena
 from _spy.vitollino.vitollino import JOGO as j
-
+Cena._cria_divs = lambda *_: None
 STYLE['width'] = 1024
 STYLE['min-height'] = "800px"
+INVENTARIO.elt.style.width = 1024
 
 IMG = dict(
     A_NORTE="https://i.imgur.com/aLEjWgB.png",
@@ -80,19 +81,15 @@ IMG = dict(
 def cria_lab():
     def und(ch):
         return "MANSÃO_%s" % NOME[ch].replace(" ", "_") if ch in NOME else "_NOOO_"
-    # j.c.c(cfre=B_NORTE, cesq=B_OESTE, cdir=B_LESTE, cfun=B_SUL, cbau="_IMG_")
-    # j.c.c(**{"c" + k: IMG["B_" + v] for k, v in zip("fre dir fun esq".split(), "LESTE SUL OESTE NORTE".split())})
     j.c.c(**SCENES)
-    print([attr for attr in dir(j.c) if "MANSÃO_HALL" in attr])
     salas = {nome: [getattr(j.c, lado) for lado in lados if hasattr(j.c, lado)] for nome, lados in ROOMS.items()}
-    print(salas)
     j.s.c(**salas)
-    # und = lambda ch: "MANSÃO_%s" % NOME[ch].replace(" ", "_") if ch in NOME else "_NOOO_"
     chambers = [[getattr(j.s, und(ch)) if hasattr(j.s, und(ch)) else None for ch in line] for line in MAP]
-    print("chambers = ", dir(j.s))
-    print("chambers = ", [[und(ch) for ch in line] for line in MAP])
-    print("chambers = ", [c.nome for line in chambers for c in line if c])
     j.l.m(chambers)
+    blqa, blqb = j.s.MANSÃO_BLOQUEIO.sul.N, j.s.MANSÃO_ARMA_DO_CRIME.norte.N
+    print(blqa.img)
+    blqa.fecha()
+    blqb.fecha()
     j.s.MANSÃO_FACHADA.leste.vai()
 
 
