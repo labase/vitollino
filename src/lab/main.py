@@ -22,6 +22,7 @@ Gerador de labirintos e jogos tipo 'novel'.
 from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena, Elemento
 from _spy.vitollino.vitollino import Popup as Texto
 from _spy.vitollino.vitollino import JOGO as j
+from browser import window, html
 Cena._cria_divs = lambda *_: None
 STYLE['width'] = 1024
 STYLE['min-height'] = "800px"
@@ -77,8 +78,8 @@ IMG = dict(
     R_NORTE="https://i.imgur.com/qnjq624.png", R_SUL="https://i.imgur.com/nZvwdhP.png",
     R_LESTE="https://i.imgur.com/gS4rXYk.png", R_OESTE="http://i.imgur.com/2Z36mLI.png"
 )
-PROP= dict(
-    NOTE="https://i.imgur.com/SghupND.png"
+PROP = dict(
+    NOTE="https://i.imgur.com/SghupND.png", LIVRO="https://i.imgur.com/yWylotH.png?1"
 )
 
 
@@ -91,24 +92,46 @@ def cria_lab():
     chambers = [[getattr(j.s, und(ch)) if hasattr(j.s, und(ch)) else None for ch in line] for line in MAP]
     j.l.m(chambers)
     blqa, blqb = j.s.MANSÃO_BLOQUEIO.sul.N, j.s.MANSÃO_ARMA_DO_CRIME.norte.N
-    print(blqa.img)
+    j.s.MANSÃO_HALL.oeste.portal(N=j.s.MANSÃO_FACHADA.oeste)
+    print("cria_lab", blqa.img)
     blqa.fecha()
     blqb.fecha()
-    j.s.MANSÃO_FACHADA.leste.vai()
+    # j.s.MANSÃO_FACHADA.leste.vai()
+    j.s.MANSÃO_HALL.oeste.vai()
 
 
 class Note:
     def __init__(self):
-        cena = j.s.MANSÃO_HALL.oeste
-        self.implanta_livro_de_notas(cena)
+        self.onde = self.cena = j.s.MANSÃO_HALL.oeste
+        print("implanta_livro_de_notas", self.cena.img)
+        self.livro = Cena(PROP["LIVRO"])
+        self.papel = Elemento(
+            img=PROP["NOTE"], tit="caderno de notas", vai=self.pega_papel, style=dict(left=350, top=550, width=60))
+        self.implanta_livro_de_notas()
+        self.div = html.DIV(style=dict(
+            position="absolute", left=45, top=70, width=450, background="transparent", border="none"))
+        self.ta = html.TEXTAREA(CODE, cols="70", rows="20", style=dict(
+            position="absolute", left=50, top=50, background="transparent", border="none"))
+        self.div <= self.ta
+            # lineNumbers=True,
 
-    def implanta_livro_de_notas(self, cena):
-        def pega_papel(_=0):
-            vai = Texto(cena, "Um Livro de Notas", "Você encontra um livro de notas")
-            j.i.bota(papel, "papel", vai.vai)
-        papel = Elemento(
-            img=PROP["NOTE"], tit="caderno de notas", vai=pega_papel, style=dict(left=100, top=250, width=40))
-        # papel.entra(cena)
+
+    def implanta_livro_de_notas(self):
+        print("implanta_livro_de_notas", self.papel.img)
+        self.papel.entra(self.cena)
+
+    def pega_papel(self, _=0):
+        texto = Texto(self.cena, "Um Livro de Notas", "Você encontra um livro de notas")
+        j.i.bota(self.papel, "papel", texto.vai)
+        self.papel.vai = self.mostra_livro
+
+    def mostra_livro(self):
+        self.onde = j.i.cena
+        self.livro.portal(O=self.onde)
+        self.livro.vai()
+        self.livro.elt <= self.div
+
+        cm = window.CodeMirror.fromTextArea(self.ta, dict(mode="python", theme="solarized"))
 
 
 def main():
@@ -148,3 +171,20 @@ ABC
 --HIJKL
 ----M-N
 ----OPQR"""[1:].split("\n")
+CODE = """
+def cria_lab():
+    def und(ch):
+        return "MANSÃO_%s" % NOME[ch].replace(" ", "_") if ch in NOME else "_NOOO_"
+    j.c.c(**SCENES)
+    salas = {nome: [getattr(j.c, lado) for lado in lados if hasattr(j.c, lado)] for nome, lados in ROOMS.items()}
+    j.s.c(**salas)
+    chambers = [[getattr(j.s, und(ch)) if hasattr(j.s, und(ch)) else None for ch in line] for line in MAP]
+    j.l.m(chambers)
+    blqa, blqb = j.s.MANSÃO_BLOQUEIO.sul.N, j.s.MANSÃO_ARMA_DO_CRIME.norte.N
+    j.s.MANSÃO_HALL.oeste.portal(N=j.s.MANSÃO_FACHADA.oeste)
+    print("cria_lab", blqa.img)
+    blqa.fecha()
+    blqb.fecha()
+    j.s.MANSÃO_FACHADA.leste.vai()
+
+"""

@@ -24,8 +24,8 @@ from browser import document, html
 SZ = dict(W=300, H=300)
 DOC_PYDIV = document["pydiv"]
 ppcss = 'https://codepen.io/imprakash/pen/GgNMXO'
-STYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'top': 0, 'background': "white"}
-PSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'bottom': 0, 'background': "white"}
+STYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'top': 0}
+PSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'bottom': 0}
 LIMBOSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
 ESTYLE = {'opacity': "inherited", 'width': 30, 'height': 30, 'min-height': '30px', 'float': 'left', 'position': 'unset'}
@@ -102,7 +102,7 @@ class Elemento:
 
     def __init__(self, img="", vai=None, style=NS, tit="", alt="", tel=DOC_PYDIV, **kwargs):
         self.img = img
-        self.act = vai if vai else lambda _=0: None
+        self.vai = vai if vai else lambda _=0: None
         self.tela = tel
         self.opacity = 0
         self.style = dict(**PSTYLE)
@@ -110,18 +110,18 @@ class Elemento:
         self.style.update(style)
         self.elt = html.DIV(Id=tit, style=self.style)
         if img:
-            self.img = html.IMG(src=img, title=tit, alt=alt)
-            # self.elt <= self.img
+            self.img = html.IMG(src=img, title=tit, alt=alt, width=self.style["width"])
+            self.elt <= self.img
         self.elt.onclick = self._click
         self.tela <= self.elt
         self.c(**kwargs)
 
     def _click(self, _=None):
-        return self.act()
+        return self.vai()
 
     def entra(self, cena, style=None):
         self.elt.style = style if style else self.style
-        cena <= self.elt
+        cena <= self
 
     @classmethod
     def c(cls, **kwarg):
