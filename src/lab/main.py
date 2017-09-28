@@ -19,7 +19,8 @@
 """
 Gerador de labirintos e jogos tipo 'novel'.
 """
-from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena
+from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena, Elemento
+from _spy.vitollino.vitollino import Popup as Texto
 from _spy.vitollino.vitollino import JOGO as j
 Cena._cria_divs = lambda *_: None
 STYLE['width'] = 1024
@@ -76,6 +77,9 @@ IMG = dict(
     R_NORTE="https://i.imgur.com/qnjq624.png", R_SUL="https://i.imgur.com/nZvwdhP.png",
     R_LESTE="https://i.imgur.com/gS4rXYk.png", R_OESTE="http://i.imgur.com/2Z36mLI.png"
 )
+PROP= dict(
+    NOTE="https://i.imgur.com/SghupND.png"
+)
 
 
 def cria_lab():
@@ -93,9 +97,24 @@ def cria_lab():
     j.s.MANSÃO_FACHADA.leste.vai()
 
 
+class Note:
+    def __init__(self):
+        cena = j.s.MANSÃO_HALL.oeste
+        self.implanta_livro_de_notas(cena)
+
+    def implanta_livro_de_notas(self, cena):
+        def pega_papel(_=0):
+            vai = Texto(cena, "Um Livro de Notas", "Você encontra um livro de notas")
+            j.i.bota(papel, "papel", vai.vai)
+        papel = Elemento(
+            img=PROP["NOTE"], tit="caderno de notas", vai=pega_papel, style=dict(left=100, top=250, width=40))
+        # papel.entra(cena)
+
+
 def main():
     # criarsalab()
     cria_lab()
+    Note()
     pass
 
 
