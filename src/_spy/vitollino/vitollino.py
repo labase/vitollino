@@ -41,7 +41,7 @@ OSTYLE = {'position': "absolute", 'width': "10%", 'left': 0, 'top': "20%", 'marg
           "min-height": "60%", "cursor": "w-resize"}
 ZSTYLE = {'position': "absolute", 'width': "10%", 'margin': "0%",
           "min-height": "10%", "cursor": "zoom-in"}
-INVENTARIO = None
+# INVENTARIO = None
 
 
 def singleton(class_):
@@ -86,9 +86,20 @@ NS = {}
 NL = []
 
 
+class Musica(object):
+    def __init__(self, sound, loop=True, autoplay=True, sound_type="audio/mpeg"):
+        self.sound = html.AUDIO(src=sound, autoplay=autoplay, loop=loop, type=sound_type)
+        document.body <= self.sound
+
+
 class Elemento:
     """
-    Representa um objeto que é representado por uma imagem em uma cena.
+    Um objeto de interação que é representado por uma imagem em uma cena.
+
+            papel = Elemento(
+             img="papel.png", tit="caderno de notas",
+             vai=pega_papel, style=dict(left=350, top=550, width=60))
+
 
     :param img: URL de uma imagem
     :param vai: função executada quando se clica no objeto
@@ -163,6 +174,7 @@ class Portal:
                 if isinstance(self.origem, Cena):
                     self.origem.elt <= self.elt
                     setattr(self.origem, portal, self)
+                self.vai = self.vai
                 self._vai = self.vai
 
             def __call__(self, *args, **kwargs):
@@ -234,18 +246,7 @@ class Labirinto:
 
 class Sala:
     def __init__(self, n=NADA, l=NADA, s=NADA, o=NADA, nome='', **kwargs):
-        class Reference:
-            def __init__(self, val, index):
-                self._value, self._index = val, index
-
-            def __get__(self, instance, owner):
-                return self._value[self._index]
-
-            def __set__(self, val):
-                self._value[self._index] = val
-
         self.cenas = [Cena(img) if isinstance(img, str) else img for img in [n, l, s, o]]
-        # self.norte, self.leste, self.sul, self.oeste = [Reference(self.cenas, index) for index in range(0, 4)]
         self.nome = nome
         Sala.c(**kwargs)
         self.p()
@@ -267,7 +268,6 @@ class Sala:
         return self.cenas[3]
 
     def p(self):
-        # [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
         for esquerda in range(4):
             cena_a_direita = (esquerda + 1) % 4
             self.cenas[esquerda].direita = self.cenas[cena_a_direita]
@@ -578,10 +578,10 @@ class Droppable:
 
 
 class Folha:
-    def __init__(self, texto, html, tela, left):
+    def __init__(self, texto, ht_ml, tela, left):
         style = {'position': "absolute", 'width': 80, 'height': 80, 'left': left, 'top': 10, 'background': "yellow"}
         fid = "folha%d" % left
-        self.folha = html.DIV(texto, Id=fid, style=style, draggable=True)
+        self.folha = ht_ml.DIV(texto, Id=fid, style=style, draggable=True)
         tela <= self.folha
         self.folha.ondragstart = self.drag_start
         self.folha.onmouseover = self.mouse_over
@@ -595,9 +595,9 @@ class Folha:
 
 
 class Suporte:
-    def __init__(self, bloco, html, tela, left, certa):
+    def __init__(self, bloco, ht_ml, tela, left, certa):
         style = {'position': "absolute", 'width': 80, 'height': 80, 'left': left, 'top': 100, 'background': "grey"}
-        self.folha = html.DIV("............ ............", style=style)
+        self.folha = ht_ml.DIV("............ ............", style=style)
         self.left = left
         self.certa = certa
         tela <= self.folha
@@ -644,18 +644,18 @@ class Bloco:
         for pos, tx in enumerate(texto):
             Folha(tx, html, tela, pos * 100 + 10)
 
-    def começa_de_novo(self):
+    def inicia_de_novo(self):
         pass
 
-    def conta_peça(self, valor_peça):
-        self.pecas_colocadas += valor_peça
+    def conta_pecas(self, valor_peca):
+        self.pecas_colocadas += valor_peca
         if len(self.pecas_colocadas) == 4:
             if all(self.pecas_colocadas):
                 input("O texto está certo.")
             else:
                 vai = input("Tentar de novo?")
                 if vai == "s":
-                    self.começa_de_novo()
+                    self.inicia_de_novo()
 
     def nao_monta(self):
         pass
@@ -678,6 +678,7 @@ class Jogo:
         self.portal = self.p = Portal
         self.dropper = self.d = Dropper
         self.droppable = self.r = Droppable
+        self.musica = self.m = Musica
         pass
 
 

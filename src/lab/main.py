@@ -115,7 +115,6 @@ class Note:
         self.div <= self.ta
             # lineNumbers=True,
 
-
     def implanta_livro_de_notas(self):
         print("implanta_livro_de_notas", self.papel.img)
         self.papel.entra(self.cena)
@@ -136,6 +135,7 @@ class Note:
 
 def main():
     # criarsalab()
+    j.m("https://is.gd/Ldlg0V")
     cria_lab()
     Note()
     pass
