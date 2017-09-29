@@ -17,26 +17,34 @@
 # Você deve ter recebido uma cópia da Licença Pública Geral GNU
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
 
-"""Handle http requests.
+"""Fake brython modules for debugging.
 
 .. moduleauthor:: Carlo Oliveira <carlo@nce.ufrj.br>
 
-# make sure the default templates directory is known to Bottle
-templates_dir = os.path.join(project_home, 'views/')
-if templates_dir not in TEMPLATE_PATH:
-    TEMPLATE_PATH.insert(0, templates_dir)
-
 """
-import os
-import sys
-import logging as log
-__version__ = "0.0.2"
-LOG_LEVEL = int(os.getenv("LABASELOG", log.ERROR))
 
-log.basicConfig(level=LOG_LEVEL)
 
-HERE = os.path.dirname(__file__)
-# add your project directory to the sys.path
-project_home = HERE  # HERE  # os.path.join(here, "src/")
-if project_home not in sys.path:
-    sys.path = [project_home] + sys.path
+class JSObject:
+    """Mocking class Browser.
+
+    """
+
+    document = None
+    html = None
+    window = None
+
+    def __init__(self, *_, **__):
+        """Mocking class Browser.
+
+        """
+        pass
+
+    def _nodoings(self, *_, **__):
+        """ Mocker method to fake brython behaviour.
+
+        :param _: Catch all positional parameters
+        :param __: Catch all keywords parameters
+        :return: Mocking class Browser
+        """
+        return self
+

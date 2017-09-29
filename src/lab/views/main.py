@@ -133,7 +133,7 @@ class Note:
         cm = window.CodeMirror.fromTextArea(self.ta, dict(mode="python", theme="solarized"))
 
 
-def main():
+def main(*_):
     # criarsalab()
     j.m("https://is.gd/Ldlg0V")
     cria_lab()

@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: UTF8 -*-
-# Este arquivo é parte do programa Vitollino
+# Este arquivo é parte do programa Marayho
 # Copyright 2014-2017 Carlo Oliveira <carlo@nce.ufrj.br>,
 # `Labase <http://labase.selfip.org/>`__; `GPL <http://j.mp/GNU_GPL3>`__.
 #
-# Vitollino é um software livre; você pode redistribuí-lo e/ou
+# Marayho é um software livre; você pode redistribuí-lo e/ou
 # modificá-lo dentro dos termos da Licença Pública Geral GNU como
 # publicada pela Fundação do Software Livre (FSF); na versão 2 da
 # Licença.
@@ -21,22 +21,27 @@
 
 .. moduleauthor:: Carlo Oliveira <carlo@nce.ufrj.br>
 
-# make sure the default templates directory is known to Bottle
-templates_dir = os.path.join(project_home, 'views/')
-if templates_dir not in TEMPLATE_PATH:
-    TEMPLATE_PATH.insert(0, templates_dir)
-
 """
 import os
 import sys
 import logging as log
-__version__ = "0.0.2"
+from bottle import TEMPLATE_PATH
+
 LOG_LEVEL = int(os.getenv("LABASELOG", log.ERROR))
 
 log.basicConfig(level=LOG_LEVEL)
 
+
+P_N_O_D_E_D = "S_N_O_D_E-%02d"
 HERE = os.path.dirname(__file__)
+SRC_DIR = os.path.join(HERE, "views")
 # add your project directory to the sys.path
-project_home = HERE  # HERE  # os.path.join(here, "src/")
+project_home = HERE  # os.path.join(here, "src/")
+CLIENT = os.path.join(HERE, "..")  # "views")
 if project_home not in sys.path:
     sys.path = [project_home] + sys.path
+
+# make sure the default templates directory is known to Bottle
+templates_dir = os.path.join(project_home, 'views/')
+if templates_dir not in TEMPLATE_PATH:
+    TEMPLATE_PATH.insert(0, templates_dir)

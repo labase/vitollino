@@ -30,13 +30,16 @@ if templates_dir not in TEMPLATE_PATH:
 import os
 import sys
 import logging as log
-__version__ = "0.0.2"
+from bottle import TEMPLATE_PATH
+
+from lab import HERE
+
 LOG_LEVEL = int(os.getenv("LABASELOG", log.ERROR))
 
 log.basicConfig(level=LOG_LEVEL)
-
-HERE = os.path.dirname(__file__)
-# add your project directory to the sys.path
-project_home = HERE  # HERE  # os.path.join(here, "src/")
+project_home = HERE  # os.path.join(here, "src/")
 if project_home not in sys.path:
     sys.path = [project_home] + sys.path
+templates_dir = os.path.join(project_home, 'views/')
+if templates_dir not in TEMPLATE_PATH:
+    TEMPLATE_PATH.insert(0, templates_dir)
