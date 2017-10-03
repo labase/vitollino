@@ -79,7 +79,8 @@ IMG = dict(
     R_LESTE="https://i.imgur.com/gS4rXYk.png", R_OESTE="http://i.imgur.com/2Z36mLI.png"
 )
 PROP = dict(
-    NOTE="https://i.imgur.com/SghupND.png", LIVRO="https://i.imgur.com/yWylotH.png?1"
+    NOTE="https://i.imgur.com/SghupND.png", LIVRO="https://i.imgur.com/yWylotH.png?1",
+    FORCE="https://i.imgur.com/aLTJY2B.png"
 )
 
 
@@ -106,13 +107,15 @@ class Note:
         print("implanta_livro_de_notas", self.cena.img)
         self.livro = Cena(PROP["LIVRO"])
         self.papel = Elemento(
-            img=PROP["NOTE"], tit="caderno de notas", vai=self.pega_papel, style=dict(left=350, top=550, width=60))
+            img=PROP["NOTE"], tit="caderno de notas", vai=self.pega_papel, style=dict(
+                left=350, top=550, width=60, height="80px"))
         self.implanta_livro_de_notas()
         self.div = html.DIV(style=dict(
             position="absolute", left=45, top=70, width=450, background="transparent", border="none"))
         self.ta = html.TEXTAREA(CODE, cols="70", rows="20", style=dict(
             position="absolute", left=50, top=50, background="transparent", border="none"))
         self.div <= self.ta
+        self.livro.elt <= self.div
 
     def implanta_livro_de_notas(self):
         print("implanta_livro_de_notas", self.papel.img)
@@ -121,16 +124,34 @@ class Note:
     def pega_papel(self, _=0):
         texto = Texto(self.cena, "Um Livro de Notas", "Você encontra um livro de notas")
         texto.vai()
-        j.i.bota(self.papel, "papel", texto.vai)
+        j.i.bota(self.papel, "papel", None)  # texto.vai)
         self.papel.vai = self.mostra_livro
 
     def mostra_livro(self):
         self.onde = j.i.cena
-        self.livro.portal(O=self.onde)
+        self.livro.portal(O=self.onde, L=self.onde)
         self.livro.vai()
-        self.livro.elt <= self.div
+        self.escreve_livro()
 
+    def escreve_livro(self):
         cm = window.CodeMirror.fromTextArea(self.ta, dict(mode="python", theme="solarized"))
+        self.escreve_livro = lambda *_: None
+
+
+class Force:
+    def __init__(self):
+        self.onde = self.cena = j.s.MANSÃO_HALL.leste
+        self.force = Elemento(
+            img=PROP["FORCE"], tit="campo de força", vai=self.toca_campo, style=dict(
+                left=0, top=30, width=850, height="680px"))
+        self.implanta_campo_de_forca()
+
+    def implanta_campo_de_forca(self):
+        self.force.entra(self.cena)
+
+    def toca_campo(self, _=0):
+        texto = Texto(self.cena, "Campo de Força", "Você recebe um pulso de força e é jogado para trás")
+        texto.vai()
 
 
 def main(*_):
@@ -138,6 +159,7 @@ def main(*_):
     j.m("https://is.gd/Ldlg0V")
     cria_lab()
     Note()
+    Force()
     pass
 
 

@@ -28,8 +28,8 @@ STYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'top': 0}
 PSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'bottom': 0}
 LIMBOSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
-ESTYLE = {'opacity': "inherited", 'width': 30, 'height': 30, 'min-height': '30px', 'float': 'left', 'position': 'unset'}
-EIMGSTY = {"max-width": "100%", "max-height": "100%"}
+ESTYLE = {'opacity': "inherited", 'width': 30, 'height': "30px", 'min-height': '30px', 'float': 'left', 'position': 'unset'}
+EIMGSTY = {"max-width": "100%", "max-height": "100%", "width": "100%", "height": "100%"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
 NSTYLE = {'position': "absolute", 'width': "60%", 'left': "20%", 'top': 0, 'margin': "0%",
@@ -128,7 +128,8 @@ class Elemento:
         self.tela <= self.elt
         self.c(**kwargs)
 
-    def _click(self, _=None):
+    def _click(self, ev=None):
+        ev.stopPropagation()
         return self.vai()
 
     def entra(self, cena, style=None):
@@ -475,12 +476,11 @@ class Popup:
 
 class Texto(Popup):
     def __init__(self, cena=NADA, tit="", txt="", **kwargs):
+        super().__init__(None, tit=tit, txt=txt, vai=None, **kwargs)
         self.elt = Popup.POP.popup
         cena <= self
-        super().__init__(None, tit=tit, txt=txt, vai=None, **kwargs)
 
     def vai(self):
-        print("Texto(Popup)", self.tit, self.txt)
         Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
         pass
 
