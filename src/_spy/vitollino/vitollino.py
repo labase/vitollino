@@ -29,6 +29,7 @@ PSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'bottom': 0}
 LIMBOSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
 ESTYLE = {'opacity': "inherited", 'width': 30, 'height': 30, 'min-height': '30px', 'float': 'left', 'position': 'unset'}
+EIMGSTY = {"max-width": "100%", "max-height": "100%"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
 NSTYLE = {'position': "absolute", 'width': "60%", 'left': "20%", 'top': 0, 'margin': "0%",
@@ -121,7 +122,7 @@ class Elemento:
         self.style.update(style)
         self.elt = html.DIV(Id=tit, style=self.style)
         if img:
-            self.img = html.IMG(src=img, title=tit, alt=alt, width=self.style["width"])
+            self.img = html.IMG(src=img, title=tit, alt=alt, style=EIMGSTY)  # width=self.style["width"])
             self.elt <= self.img
         self.elt.onclick = self._click
         self.tela <= self.elt
@@ -472,6 +473,18 @@ class Popup:
         return cena
 
 
+class Texto(Popup):
+    def __init__(self, cena=NADA, tit="", txt="", **kwargs):
+        self.elt = Popup.POP.popup
+        cena <= self
+        super().__init__(None, tit=tit, txt=txt, vai=None, **kwargs)
+
+    def vai(self):
+        print("Texto(Popup)", self.tit, self.txt)
+        Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
+        pass
+
+
 @singleton
 class Inventario:
     def __init__(self, tela=DOC_PYDIV):
@@ -479,7 +492,7 @@ class Inventario:
         self.cena = None
         self.inventario = {}
         self.opacity = 0
-        self.style = dict(**STYLE)
+        self.style = dict(**ISTYLE)
         self.style["min-height"] = "30px"
         self.elt = html.DIV(Id="__inv__", style=self.style)
         self.elt.onclick = self.mostra
@@ -512,7 +525,7 @@ class Inventario:
 
     def bota(self, nome_item, item="", acao=None):
         if isinstance(nome_item, str):
-            item_img = html.IMG(Id=nome_item, src=item, width=30, style=ESTYLE)
+            item_img = html.IMG(Id=nome_item, src=item, width=30, style=EIMGSTY)
             self.elt <= item_img
         else:
             nome_item.entra(self)

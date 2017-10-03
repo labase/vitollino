@@ -20,7 +20,7 @@
 Gerador de labirintos e jogos tipo 'novel'.
 """
 from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena, Elemento
-from _spy.vitollino.vitollino import Popup as Texto
+from _spy.vitollino.vitollino import Texto
 from _spy.vitollino.vitollino import JOGO as j
 from browser import window, html
 Cena._cria_divs = lambda *_: None
@@ -113,7 +113,6 @@ class Note:
         self.ta = html.TEXTAREA(CODE, cols="70", rows="20", style=dict(
             position="absolute", left=50, top=50, background="transparent", border="none"))
         self.div <= self.ta
-            # lineNumbers=True,
 
     def implanta_livro_de_notas(self):
         print("implanta_livro_de_notas", self.papel.img)
@@ -121,6 +120,7 @@ class Note:
 
     def pega_papel(self, _=0):
         texto = Texto(self.cena, "Um Livro de Notas", "Você encontra um livro de notas")
+        texto.vai()
         j.i.bota(self.papel, "papel", texto.vai)
         self.papel.vai = self.mostra_livro
 
