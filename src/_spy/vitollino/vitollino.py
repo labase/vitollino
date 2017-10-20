@@ -28,7 +28,8 @@ STYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'top': 0}
 PSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'bottom': 0}
 LIMBOSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
-ESTYLE = {'opacity': "inherited", 'width': 30, 'height': "30px", 'min-height': '30px', 'float': 'left', 'position': 'unset'}
+ESTYLE = {'opacity': "inherited", 'width': 30, 'height': "30px", 'min-height': '30px', 'float': 'left',
+          'position': 'unset'}
 EIMGSTY = {"max-width": "100%", "max-height": "100%", "width": "100%", "height": "100%"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
@@ -42,6 +43,8 @@ OSTYLE = {'position': "absolute", 'width': "10%", 'left': 0, 'top': "20%", 'marg
           "min-height": "60%", "cursor": "w-resize"}
 ZSTYLE = {'position': "absolute", 'width': "10%", 'margin': "0%",
           "min-height": "10%", "cursor": "zoom-in"}
+
+
 # INVENTARIO = None
 
 
@@ -197,6 +200,7 @@ class Portal:
 
             def __eq__(self, other):
                 return other == self.destino
+
         _ = style.update({"min-height": style["height"]}) if "height" in style else None
         sty = Portal.PORTAIS.get(portal, ZSTYLE)
         self.style.update(sty)
@@ -545,6 +549,96 @@ class Inventario:
 
 
 INVENTARIO = Inventario()
+
+
+class Dragger:
+    POINTER = ""
+    ACTION = ""
+
+    def __init__(self, dragger):
+        self._mouse_over = self.pre_mouse_over
+        self._mouse_down = self.pre_mouse_down
+        self._mouse_up = self.pre_mouse_up
+        self._mouse_move = self.pre_mouse_move
+
+        def drag_start(ev): self.drag_start(ev)
+
+        def mouse_over(ev): self._mouse_over(ev)
+
+        def mouse_down(ev): self._mouse_down(ev)
+
+        def mouse_move(ev): self._mouse_move(ev)
+
+        def mouse_up(ev): self._mouse_up(ev)
+
+        self.dragger = dragger
+        dragger.draggable = True
+
+        dragger.ondragstart = drag_start
+        dragger.onmouseover = mouse_over
+        dragger.onmousedown = mouse_down
+        dragger.onmousemove = mouse_move
+        dragger.onmouseup = mouse_up
+
+    def widen(self, dx):
+        self.dragger.w = self.dragger.w + dx
+
+    def highten(self, dy):
+        self.dragger.h = self.dragger.h + dy
+
+    @staticmethod
+    def pre_mouse_over(ev):
+        ev.target.style.cursor = "grab"
+
+    @staticmethod
+    def mouse_over(ev):
+        obj = ev.target
+        dx, dy, x, y = obj.w, obj.h, ev.x-obj.offsetLeft, ev.y-obj.offsetTop
+        quadrante = dy//y*3 + dx//x
+        ev.target.style.cursor = Dragger.POINTER[quadrante]
+
+    def drag_start(self, ev):
+        ev.data['text'] = ev.target.id
+        ev.data.effectAllowed = 'move'
+        ev.preventDefault()
+        return False
+
+    def mouse_down(self, ev):
+        ev.target.style.cursor = "move"
+        self._mouse_move = self.pre_mouse_move
+
+    def pre_mouse_down(self, ev):
+        ev.target.style.cursor = "move"
+        self._mouse_move = self.pre_mouse_move
+
+        pass
+
+    def pre_mouse_up(self, ev):
+        self._mouse_over = self.mouse_over
+        self._mouse_move = self.no_mouse_move
+        self._mouse_down = self.mouse_down
+        pass
+
+    def _mouse_up_(self, ev):
+        self._mouse_over = self.mouse_over
+        self._mouse_down = self.mouse_down
+        self._mouse_up = self.mouse_up
+
+    def mouse_up(self, ev):
+        self._mouse_over = self.pre_mouse_over
+        self._mouse_down = self.pre_mouse_down
+        self._mouse_up = self.pre_mouse_up
+        pass
+
+    def no_mouse_move(self, ev):
+        pass
+
+    def pre_mouse_move(self, ev):
+        obj = ev.target
+        dx, dy, x, y = obj.w, obj.h, ev.x-obj.offsetLeft, ev.y-obj.offsetTop
+        self.dragger.x = ev.x-x
+        self.dragger.y = ev.y-y
+        pass
 
 
 class Dropper:
