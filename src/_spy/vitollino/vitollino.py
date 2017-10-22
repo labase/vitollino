@@ -45,6 +45,54 @@ ZSTYLE = {'position': "absolute", 'width': "10%", 'margin': "0%",
           "min-height": "10%", "cursor": "zoom-in"}
 
 
+class PATTERN:
+    NOOP = {k.strip(): v for k, v in (tp.split(":") for tp in """""".replace("\n", "").split(";") if tp)}
+    STARRY = {k.strip(): v for k, v in (tp.split(":") for tp in """background-color:black; opacity:0.4;
+    background-image:
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+    radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;""".replace("\n", "").split(";") if tp)}
+
+    NCROSS = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.7;
+    background: 
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent),
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent) 30px 30px,
+    linear-gradient(#A8B1BB 8px, transparent 8px) 0 -4px,
+    linear-gradient(90deg, #A8B1BB 8px, transparent 8px) -4px 0;
+    background-color: slategray;
+    background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px;""".replace("\n", "").split(";") if tp)}
+
+    OCROSS = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.7;
+    background: 
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent),
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent) 50px 50px,
+    linear-gradient(#A8B1BB 8px, transparent 8px) 0 -4px,
+    linear-gradient(90deg, #A8B1BB 8px, transparent 8px) -4px 0;
+    background-color: slategray;
+    background-size: 100px 100px, 100px 100px, 50px 50px, 50px 50px;""".replace("\n", "").split(";") if tp)}
+
+    BCROSS = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.7;
+    background-color: slategray;
+    background: 
+    radial-gradient(slategray 9px, transparent 10px),        
+    repeating-radial-gradient(slategray 0, slategray 4px, transparent 5px, transparent 15px,
+    slategray 16px, slategray 20px, transparent 21px, transparent 30px);    
+    background-size: 30px 30px, 90px 90px; 
+    background-position: 0 0;""".replace("\n", "").split(";") if tp)}
+
+    SHIPPO = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.5;background-color: #def;
+    background-image: radial-gradient(closest-side, transparent 98%, rgba(0,0,0,.3) 99%),
+    radial-gradient(closest-side, transparent 98%, rgba(0,0,0,.3) 99%);
+    background-size: 80px 80px;
+    background-position: 0 0, 40px 40px;""".replace("\n", "").split(";") if tp)}
+    RADGRAD = ", ".join(["rgba({a},{a},{a},{b}) {c}%".format(a=200 if c % 2 else 20, b=0.6, c=c*10) for c in range(0, 11)])
+
+    BOKEH = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.5;
+    background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px, 100% 100%;background: 
+    radial-gradient({}) 0 0;""".replace("\n", "").format(RADGRAD).split(";") if tp)}
 # INVENTARIO = None
 
 
@@ -549,6 +597,149 @@ class Inventario:
 
 
 INVENTARIO = Inventario()
+
+
+class Point(list):
+
+    def __init__(self, x, y):
+        super().__init__([x, y])
+        self.x, self.y = x, y
+        self.__iadd__, self.__isub__ = self.__radd__, self.__rsub__
+
+    def __sub__(self, other):
+        return Point(self.x-other.x, self.y-other.y)
+
+    def __add__(self, other):
+        return Point(self.x+other.x, self.y+other.y)
+
+    def __radd__(self, other):
+        print(f"__radd__(self, {other})")
+        self.x += other.x
+        self.y += other.y
+        return self
+
+    def __rsub__(self, other):
+        self.x -= other.x
+        self.y -= other.y
+        return self
+
+    def __iter__(self):
+        return (ordin for ordin in (self.x, self.y))
+
+    def __setitem__(self, key, value):
+        if key:
+            self.y = value
+        else:
+            self.x = value
+
+
+class Cursor:
+
+    def __init__(self, alvo):
+        self.alvo, self.ponto = alvo, None
+        outer = self
+
+        class Noop:
+            def __init__(self, outerer=self):
+                self.outer = outerer
+
+            def change(self, ev):
+                pass
+
+            def update_style(self, styler, new_style):
+                cur_style = dict(outer.style)
+                point = Point(outer.alvo.style.left, outer.alvo.style.top)
+                delta = Point(outer.alvo.style.width, outer.alvo.style.height)
+                print("delta.x, delta.y", outer.elt.style.left, outer.elt.style.top, delta.x, delta.y)
+                cur_style.update(cursor=styler, left=point.x, top=point.y, width=delta.x, height=delta.y, **new_style)
+                return cur_style
+
+            def next(self, ev):
+                ev.target.style = self.update_style("move", PATTERN.BCROSS)
+                outer.current = outer.move
+
+            def mouse_over(self, ev):
+                ev.target.style.cursor = "default"
+
+            def mouse_down(self, ev):
+                outer.ponto = Point(ev.x, ev.y)
+                outer.cursor = outer.current
+                pass
+
+            def mouse_move(self, ev):
+                pass
+
+            def mouse_up(self, ev):
+                outer.cursor = outer.noop
+
+        class Move(Noop):
+            def mouse_move(self, ev):
+                delta = Point(int(alvo.style.left.split("px")[0]), int(alvo.style.top.split("px")[0])) \
+                        + Point(ev.x, ev.y) - outer.ponto
+                alvo.style.left, alvo.style.top = delta
+                outer.elt.left, outer.elt.top = delta
+                outer.ponto = Point(ev.x, ev.y)
+
+            def mouse_over(self, ev):
+                ev.target.style.cursor = "move"
+
+            def next(self, ev):
+                print("next resize")
+                ev.target.style = self.update_style("grab", PATTERN.BOKEH)
+                outer.current = outer.resize
+
+        class Resize(Noop):
+            def mouse_move(self, ev):
+                delta = Point(int(alvo.style.width.split("px")[0]), int(alvo.style.height.split("px")[0])) \
+                        + Point(ev.x, ev.y) - outer.ponto
+                outer.elt.width, outer.elt.height = delta
+                alvo.style.width, alvo.style.height = delta
+                outer.ponto = Point(ev.x, ev.y)
+
+            def mouse_over(self, ev):
+                ev.target.style.cursor = "grab"
+
+            def next(self, ev):
+                print("next noop")
+                ev.target.style = self.update_style("default", PATTERN.STARRY)
+                outer.current = outer.noop
+
+        def next_state(ev):
+            # self.state.append(self.state.pop(0))
+            self.current.next(ev)
+
+        def _mouse_down(ev): return self.cursor.mouse_down(ev)
+
+        def _mouse_up(ev): return self.cursor.mouse_up(ev)
+
+        def _mouse_move(ev): return self.cursor.mouse_move(ev)
+
+        def _mouse_over(ev): return self.cursor.mouse_over(ev)
+
+        self.noop, self.move, self.resize = self.state = [Noop(), Move(), Resize()]
+        self.cursor = self.noop
+        self.current = self.move
+        style = dict(**ISTYLE)
+        dims = [self.alvo.style.top, self.alvo.style.height, self.alvo.style.left, self.alvo.style.width]
+        dims = [int(dm.split("px")[0]) for dm in dims]
+        top, height, left, width = dims
+        left, top = left + width//2 - 30, top + height//2 - 30
+        print("dim left, top = ", dims, top, left)
+        cstyle = 'width: {}px, height: {}px, min-height: {}px, border-radius: 30px,' \
+                 ' left:{}px, top: {}px, position: absolute'
+        cstyle = cstyle.format(width, height,  height, left, top)
+        print("cstyle = ", cstyle)
+        cstyle = {k.strip(): v for k, v in (tp.split(":") for tp in cstyle.replace("\n", "").split(", ") if tp)}
+        style.update(**cstyle)
+        style.update(**PATTERN.STARRY)
+        self.style = style
+        self.elt = html.DIV(Id="__cursor__", style=style)
+        DOC_PYDIV <= self.elt
+        self.elt.onclick = next_state
+        self.elt.onmousedown = _mouse_down
+        self.elt.onmouseup = _mouse_up
+        self.elt.onmousemove = _mouse_move
+        # self.elt.onmouseover = _mouse_over
 
 
 class Dragger:

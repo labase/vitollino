@@ -47,7 +47,7 @@
         <link rel="stylesheet" href="http://esironal.github.io/cmtouch/theme/solarized.css">
 
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.4.7/phaser.min.js"></script>
-        <script type="text/javascript" src="https://cdn.rawgit.com/brython-dev/brython/3.3.2/www/src/brython.js"></script>
+        <script type="text/javascript" src="https://cdn.rawgit.com/brython-dev/brython/3.3.4/www/src/brython.js"></script>
 
         <script type="text/python">
             from lab.views.main import main
