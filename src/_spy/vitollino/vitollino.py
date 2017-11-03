@@ -21,7 +21,10 @@ Gerador de labirintos e jogos tipo 'novel'.
 """
 from browser import document, html
 from browser import window as win
+from browser import ajax
 
+NOSCORE = dict(ponto=0, valor=0, carta=None, casa=None, move=None)
+NOSC = {}
 SZ = dict(W=300, H=300)
 DOC_PYDIV = document["pydiv"]
 ppcss = 'https://codepen.io/imprakash/pen/GgNMXO'
@@ -110,6 +113,15 @@ def singleton(class_):
 
 
 @singleton
+class NoEv:
+    x = -100
+    y = -100
+
+    def stopPropagation(self):
+        pass
+
+
+@singleton
 class SalaCenaNula:
     def __init__(self):
         self.esquerda, self.direita = [None] * 2
@@ -146,6 +158,96 @@ class Musica(object):
         document.body <= self.sound
 
 
+@singleton
+class Inventario:
+    GID = "00000000000000000000"
+
+    def __init__(self, tela=DOC_PYDIV):
+        self.tela = tela
+        self.cena = None
+        self.nome = "__INVENTARIO__"
+        self.inventario = {}
+        self.opacity = 0
+        self.style = dict(**ISTYLE)
+        self.style["min-height"] = "30px"
+        self.elt = html.DIV(Id="__inv__", style=self.style)
+        self.elt.onclick = self.mostra
+        self.limbo = html.DIV(style=self.style)
+        self.limbo.style.left = "4000px"
+        self.mostra()
+        tela <= self.elt
+
+    def __le__(self, other):
+        if hasattr(other, 'elt'):
+            self.elt <= other.elt
+        else:
+            self.elt <= other
+
+    def inicia(self):
+        self.elt.html = ""
+        self.cena = None
+        self.opacity = 0
+        self.mostra()
+
+    def desmonta(self, _=0):
+        self.limbo <= self.elt
+
+    def monta(self, _=0):
+        self.tela <= self.elt
+
+    def mostra(self, _=0):
+        self.opacity = abs(self.opacity - 0.5)
+        self.elt.style.opacity = self.opacity
+
+    def bota(self, nome_item, item="", acao=None):
+        if isinstance(nome_item, str):
+            item_img = html.IMG(Id=nome_item, src=item, width=30, style=EIMGSTY)
+            self.elt <= item_img
+        else:
+            nome_item.entra(self)
+            item_img = nome_item.elt
+            item_img.style = ESTYLE
+        Dropper(item_img)
+        if acao:
+            item_img.onclick = lambda *_: acao()
+        else:
+            acao = lambda *_: None
+        self.inventario[nome_item] = acao
+
+    def tira(self, nome_item):
+        item_img = document[nome_item]
+        self.inventario.pop(nome_item, None)
+        self.limbo <= item_img
+
+    def score(self, casa, carta, move, ponto, valor):
+        data = dict(doc_id=INVENTARIO.GID, carta=carta, casa=casa, move=move, ponto=ponto, valor=valor,
+                    tempo=win.Date.now())
+        self.send('store', data)
+        print('store', data)
+
+    @staticmethod
+    def send(operation, data, action=lambda t: None, method="POST"):
+        def on_complete(request):
+            if int(request.status) == 200 or request.status == 0:
+                # print("req = ajax()== 200", request.text)
+                action(request.text)
+            else:
+                print("error " + request.text)
+
+        req = ajax()
+        req.bind('complete', on_complete)
+        # req.on_complete = on_complete
+        url = "/record/" + operation
+        req.open(method, url, True)
+        # req.set_header('content-type', 'application/x-www-form-urlencoded')
+        req.set_header("Content-Type", "application/json; charset=utf-8")
+        # print("def send", data)
+        req.send(data)
+
+
+INVENTARIO = Inventario()
+
+
 class Elemento:
     """
     Um objeto de interação que é representado por uma imagem em uma cena.
@@ -160,38 +262,56 @@ class Elemento:
     :param style: dicionário com dimensões do objeto {"left": ..., "top": ..., width: ..., height: ...}
     :param tit: Texto que aparece quando se passa o mouse sobre o objeto
     :param alt: Texto para leitores de tela
-    :param tel: cena alternativa onde o objeto vai ser colocado
+    :param cena: cena alternativa onde o objeto vai ser colocado
+    :param score: determina o score para este elemento
     :param kwargs: lista de parametros nome=URL que geram elementos com este nome e a dada imagem
     """
     limbo = html.DIV(style=LSTYLE)
 
-    def __init__(self, img="", vai=None, style=NS, tit="", alt="", tel=DOC_PYDIV, **kwargs):
+    def __init__(self, img="", vai=None, style=NS, tit="", alt="", cena=INVENTARIO, score=NOSC, **kwargs):
+        self._auto_score = self.score if score else self._auto_score
         self.img = img
         self.vai = vai if vai else lambda _=0: None
-        self.tela = tel
+        self.cena = cena
         self.opacity = 0
         self.style = dict(**PSTYLE)
         # self.style["min-width"], self.style["min-height"] = w, h
         self.style.update(style)
         self.elt = html.DIV(Id=tit, style=self.style)
+        self.xy = (-111, -111)
+        self.scorer = dict(ponto=1, valor=cena.nome, carta=tit or img, casa=self.xy, move=None)
+        self.scorer.update(score)
         if img:
             self.img = html.IMG(src=img, title=tit, alt=alt, style=EIMGSTY)  # width=self.style["width"])
             self.elt <= self.img
         self.elt.onclick = self._click
-        self.tela <= self.elt
         self.c(**kwargs)
 
-    def _click(self, ev=None):
-        ev.stopPropagation()
-        return self.vai()
+    def _auto_score(self, **kwargs):
+        pass
 
-    def entra(self, cena, style=None):
-        self.elt.style = style if style else self.style
+    def _click(self, ev=NoEv()):
+        self.xy = (ev.x, ev.y)
+        ev.stopPropagation()
+        return self.vai(ev)
+
+    def entra(self, cena, style=NOSC):
+        styler = dict(self.style)
+        styler.update(style)
+        self.elt.style = styler
+        self.cena = cena
+        self.scorer.update(valor=cena.nome, move=self.xy, casa=(styler["left"], styler["top"] if "top" in styler else 0))
+        self._auto_score(**self.scorer)
         cena <= self
 
+    def score(self, **kwargs):
+        score = {key: kwargs[key] if key in kwargs else value for key, value in self.scorer.items()}
+        INVENTARIO.score(**score)
+
     @classmethod
-    def c(cls, **kwarg):
-        return [setattr(cls, nome, Elemento(img) if isinstance(img, str) else img) for nome, img in kwarg.items()]
+    def c(cls, **kwargs):
+        return [setattr(cls, nome, Elemento(**img) if isinstance(img, dict) else Elemento(img=img))
+                for nome, img in kwargs.items()]
 
 
 class Portal:
@@ -233,7 +353,7 @@ class Portal:
                 self._vai = self.vai
 
             def __call__(self, *args, **kwargs):
-                return self.vai(*args)
+                return self.vai(*args, **kwargs)
 
             def fecha(self, *_):
                 self.vai = lambda *_: None
@@ -241,8 +361,8 @@ class Portal:
             def abre(self, *_):
                 self.vai = self._vai
 
-            def vai(self, *_):
-                return self.destino.vai()
+            def vai(self, ev=NoEv()):
+                return self.destino.vai(ev)
 
             @property
             def img(self):
@@ -367,8 +487,14 @@ class Cena:
     :param vai: Função a ser chamada no lugar da self.vai nativa
     """
 
-    def __init__(self, img=IMAGEM, esquerda=NADA, direita=NADA, meio=NADA, vai=None, nome='', **kwargs):
+    def __init__(self, img=IMAGEM, esquerda=NADA, direita=NADA, meio=NADA,
+                 vai=None, nome='', xy=(0, 0), score=NOSC, **kwargs):
         width = STYLE["width"]
+        self.scorer = dict(ponto=1, valor="__JOGO__", carta=nome, casa=xy, move=None)
+        self.scorer.update(score)
+        self._auto_score = self.score if score else self._auto_score
+        self.ev = NoEv()
+        self.xy = xy
         self.img = img
         self.nome = nome
         self.dentro = []
@@ -420,7 +546,9 @@ class Cena:
     @staticmethod
     def c(**cenas):
         for nome, imagem in cenas.items():
-            setattr(Cena, nome, Cena(imagem, nome=nome))
+            imagem, kwargs = (imagem, {}) if isinstance(imagem, str)\
+                else (imagem["img"], (imagem.pop("img") and 0) or imagem)
+            setattr(Cena, nome, Cena(imagem, nome=nome, **kwargs))
 
     @staticmethod
     def q(n=NADA, l=NADA, s=NADA, o=NADA, nome="", **kwargs):
@@ -445,14 +573,20 @@ class Cena:
     def sai(self, saida):
         self.meio = saida
 
-    def bota(self, item):
-        self.dentro.append(item)
-        self <= item
+    def bota(self, nome_item):
+        if isinstance(nome_item, str):
+            item_img = html.IMG(Id=nome_item, src=nome_item, width=30, style=EIMGSTY)
+            self.elt <= item_img
+        else:
+            nome_item.entra(self)
+        self.dentro.append(nome_item)
+        # self <= item
 
     def tira(self, item):
         self.dentro.pop(item)
 
-    def vai(self):
+    def vai(self, ev=NoEv()):
+        self.ev = ev
         INVENTARIO.cena = self
         INVENTARIO.desmonta()
         tela = DOC_PYDIV
@@ -460,7 +594,15 @@ class Cena:
         tela <= self.elt
         INVENTARIO.monta()
         INVENTARIO.cena = self
+        self._auto_score(move=(ev.x, ev.y))
         return self
+
+    def _auto_score(self, **kwargs):
+        pass
+
+    def score(self, **kwargs):
+        score = {key: kwargs[key] if key in kwargs else value for key, value in self.scorer.items()}
+        INVENTARIO.score(**score)
 
 
 class Popup:
@@ -524,7 +666,7 @@ class Popup:
         cena.elt <= Popup.POP.popup
         cena.elt <= Popup.POP.go
         act = cena.vai
-        cena.vai = lambda _=0: Popup.POP.mostra(act, tit, txt)
+        cena.vai = lambda *_, **__: Popup.POP.mostra(act, tit, txt)
         return cena
 
 
@@ -534,81 +676,9 @@ class Texto(Popup):
         self.elt = Popup.POP.popup
         cena <= self
 
-    def vai(self):
+    def vai(self, ev=NoEv):
         Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
         pass
-
-
-@singleton
-class Inventario:
-    GID = "00000000000000000000"
-
-    def __init__(self, tela=DOC_PYDIV):
-        self.tela = tela
-        self.cena = None
-        self.inventario = {}
-        self.opacity = 0
-        self.style = dict(**ISTYLE)
-        self.style["min-height"] = "30px"
-        self.elt = html.DIV(Id="__inv__", style=self.style)
-        self.elt.onclick = self.mostra
-        self.limbo = html.DIV(style=self.style)
-        self.limbo.style.left = "4000px"
-        self.mostra()
-        tela <= self.elt
-
-    def __le__(self, other):
-        if hasattr(other, 'elt'):
-            self.elt <= other.elt
-        else:
-            self.elt <= other
-
-    def inicia(self):
-        self.elt.html = ""
-        self.cena = None
-        self.opacity = 0
-        self.mostra()
-
-    def desmonta(self, _=0):
-        self.limbo <= self.elt
-
-    def monta(self, _=0):
-        self.tela <= self.elt
-
-    def mostra(self, _=0):
-        self.opacity = abs(self.opacity - 0.5)
-        self.elt.style.opacity = self.opacity
-
-    def bota(self, nome_item, item="", acao=None):
-        if isinstance(nome_item, str):
-            item_img = html.IMG(Id=nome_item, src=item, width=30, style=EIMGSTY)
-            self.elt <= item_img
-        else:
-            nome_item.entra(self)
-            item_img = nome_item.elt
-            item_img.style = ESTYLE
-        Dropper(item_img)
-        if acao:
-            item_img.onclick = lambda *_: acao()
-        else:
-            acao = lambda *_: None
-        self.inventario[nome_item] = acao
-
-    def tira(self, nome_item):
-        item_img = document[nome_item]
-        self.inventario.pop(nome_item, None)
-        self.limbo <= item_img
-
-    def score(self, evento, carta, move, ponto, valor):
-        carta = '_'.join(carta)
-        casa = '_'.join([str(evento.x), str(evento.y)])
-        data = dict(doc_id=Inventario.GID, carta=carta, casa=casa, move=move, ponto=ponto, valor=valor,
-                    tempo=win.Date.now())
-        self.gamer.send('store', data)
-        print('store', data)
-
-
-INVENTARIO = Inventario()
 
 
 class Point(list):

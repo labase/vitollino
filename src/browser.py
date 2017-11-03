@@ -22,7 +22,16 @@ class BrythonMock:
     def __call__(self, *args, **kwargs):
         return self
 
-    def bind(self, *args, **kwargs):
+    def set_header(self, *_, **__):
+        return self
+
+    def open(self, *_, **__):
+        return self
+
+    def bind(self, *_, **__):
+        return self
+
+    def send(self, *_, **__):
         return self
 
     def __le__(self, other):
@@ -30,9 +39,12 @@ class BrythonMock:
 
     def __lt__(self, other):
         return True
+
+
 document = BrythonMock()
 html = BrythonMock()
 html.DIV = BrythonMock
 # html.DIV.__le__ = MagicMock(name="DIVAPP")
 # html.IMG = MagicMock()
 window = MagicMock()
+ajax = BrythonMock()

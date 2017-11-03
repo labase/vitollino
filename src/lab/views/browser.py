@@ -41,6 +41,7 @@ class Browser:
     left = None
     top = None
     position = None
+    ajax = None
 
     def __init__(self):
         """Mocking class Browser.
@@ -52,6 +53,7 @@ class Browser:
         Browser.window = self
         Browser.Peer = self
         Browser.style = self
+        Browser.ajax = self
 
     def nodoings(self, *_, **__):
         """ Mocker method to fake brython behaviour.
@@ -77,8 +79,10 @@ class Browser:
         """
         return self
 
+
 browser = Browser
 
+ajax = browser.ajax = Browser()
 document = browser.document = Browser()
 html = browser.html = Browser()
 window = browser.window = Browser()
