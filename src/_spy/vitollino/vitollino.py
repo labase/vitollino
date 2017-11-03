@@ -20,6 +20,7 @@
 Gerador de labirintos e jogos tipo 'novel'.
 """
 from browser import document, html
+from browser import window as win
 
 SZ = dict(W=300, H=300)
 DOC_PYDIV = document["pydiv"]
@@ -88,7 +89,8 @@ class PATTERN:
     radial-gradient(closest-side, transparent 98%, rgba(0,0,0,.3) 99%);
     background-size: 80px 80px;
     background-position: 0 0, 40px 40px;""".replace("\n", "").split(";") if tp)}
-    RADGRAD = ", ".join(["rgba({a},{a},{a},{b}) {c}%".format(a=200 if c % 2 else 20, b=0.6, c=c*10) for c in range(0, 11)])
+    RADGRAD = ", ".join(["rgba({a},{a},{a},{b}) {c}%".format(
+        a=200 if c % 2 else 20, b=0.6, c=c*10) for c in range(0, 11)])
 
     BOKEH = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.5;
     background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px, 100% 100%;background: 
@@ -539,6 +541,8 @@ class Texto(Popup):
 
 @singleton
 class Inventario:
+    GID = "00000000000000000000"
+
     def __init__(self, tela=DOC_PYDIV):
         self.tela = tela
         self.cena = None
@@ -595,6 +599,14 @@ class Inventario:
         self.inventario.pop(nome_item, None)
         self.limbo <= item_img
 
+    def score(self, evento, carta, move, ponto, valor):
+        carta = '_'.join(carta)
+        casa = '_'.join([str(evento.x), str(evento.y)])
+        data = dict(doc_id=Inventario.GID, carta=carta, casa=casa, move=move, ponto=ponto, valor=valor,
+                    tempo=win.Date.now())
+        self.gamer.send('store', data)
+        print('store', data)
+
 
 INVENTARIO = Inventario()
 
@@ -613,7 +625,7 @@ class Point(list):
         return Point(self.x+other.x, self.y+other.y)
 
     def __radd__(self, other):
-        print(f"__radd__(self, {other})")
+        print("__radd__(self, {other})".format(other=other))
         self.x += other.x
         self.y += other.y
         return self
@@ -646,7 +658,8 @@ class Cursor:
             def change(self, ev):
                 pass
 
-            def update_style(self, styler, new_style):
+            @staticmethod
+            def update_style(styler, new_style):
                 cur_style = dict(outer.style)
                 point = Point(outer.alvo.style.left, outer.alvo.style.top)
                 delta = Point(outer.alvo.style.width, outer.alvo.style.height)
