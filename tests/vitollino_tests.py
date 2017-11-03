@@ -25,19 +25,20 @@ Vitollino - Teste
 Verifica a funcionalidade da biblioteca Vitollino.
 
 """
+import json
 import unittest
 from _spy.vitollino import Cena, Jogo
-# from _spy.vitollino.vitollino import DOC_PYDIV
-from unittest.mock import MagicMock, ANY, call
+from unittest.mock import MagicMock, call
 from _spy.vitollino import JOGO as j
 from _spy.vitollino.vitollino import NoEv
 from browser import ajax
+import browser
 
 I = "_IMG_"
-MAPA = [["sala_"+s if s else "" for s in l.split(",")]
+MAPA = [["sala_" + s if s else "" for s in l.split(",")]
         for l in "a,b,c,,,,,,_,,d,,e,f,g_,,h,i,j,k,l,,_,,,,m,,n,_,,,,o,p,q,r".split("_")]
 
-SALAS = [chr(i) for i in range(ord('a'), ord('z')+1)]
+SALAS = [chr(i) for i in range(ord('a'), ord('z') + 1)]
 
 
 class TNoEv:
@@ -99,6 +100,7 @@ class CenaTest(unittest.TestCase):
 
     def test_decora_portal(self):
         """Adiciona portal decora"""
+
         @j.p(N=self.meio, S=self.app)
         class Acena(Cena):
             ...
@@ -191,7 +193,8 @@ class SalaTest(unittest.TestCase):
         self.uma = MagicMock()
         self.outra = MagicMock()
 
-    def _cria_cenas_sala(self):
+    @staticmethod
+    def _cria_cenas_sala():
         """Cenas e sala c criadas."""
         j.c.c(cfre="_IMG_", cesq="_IMG_", cdir="_IMG_", cfun="_IMG_", cbau="_IMG_")
         return j.s(n=j.c.cfre, l=j.c.cesq, s=j.c.cfun, o=j.c.cdir)
@@ -302,10 +305,12 @@ class SalaCDialogoTest(unittest.TestCase):
 
     def test_decora_dialogo_classe(self):
         """Classe Cena decorada com dialogo."""
+
         @j.t
         class ComBau(Cena):
             elt = Cena()
             pass
+
         cc = ComBau(tit="UMA", txt="DUAS")
         j.t.POP._open = a = self.uma
         assert isinstance(cc, Cena), type(cc)
@@ -319,13 +324,15 @@ class LabirintoTest(unittest.TestCase):
     def setUp(self):
         j.s.c(**{"sala%s" % k: ["sala%s_%s" % (k, v) for v in list("nlso")] for k in list("cnlso")})
 
-    def test_labirinto_cruz(self):
+    @staticmethod
+    def test_labirinto_cruz():
         """Labirinto em Cruz."""
         lab = j.l(*[getattr(j.s, "sala%s" % k) for k in list("cnlso")])
         labnn = lab.centro.norte.N
         assert labnn == j.s.salan.norte, "%s != %s" % (labnn.img, j.s.salan.norte.img)
 
-    def _labirinto_mapa(self):
+    @staticmethod
+    def _labirinto_mapa():
         """Labirinto em Mapa."""
         c, n, l, s, o = [getattr(j.s, "sala%s" % k) for k in list("cnlso")]
         maper = [[c, n, l], [None, s, o]]
@@ -361,6 +368,8 @@ class SalaScoreTest(unittest.TestCase):
         self.uma = MagicMock()
         self.outra = MagicMock()
         self.send = ajax.send = MagicMock(name="send")
+        self.ms = 1509734320018
+        browser.window.Date.now.return_value = 1509734320018
 
     def _cria_cenas_sala(self):
         """Cenas e sala c criadas."""
@@ -378,16 +387,18 @@ class SalaScoreTest(unittest.TestCase):
         assert j.t.POP.alt.text == "DOIS", j.t.POP.alt.text
         assert j.t.POP.tit.text == "UM", j.t.POP.tit.text
         a.assert_called_once_with()
-        call_send = {'doc_id': '00000000000000000000', 'carta': 'cfre', 'casa': (0, 0), 'move': (-100, -100),
-                     'ponto': 2, 'valor': '__JOGO__', 'tempo': ANY}
+        call_send = json.dumps({'doc_id': '00000000000000000000', 'carta': 'cfre', 'casa': (0, 0), 'move': (-100, -100),
+                                'ponto': 2, 'valor': '__JOGO__', 'tempo': self.ms})
         self.send.assert_called_once_with(call_send)
 
     def test_decora_dialogo_classe(self):
         """Classe Cena decorada com dialogo."""
+
         @j.t
         class ComBau(Cena):
             elt = Cena()
             pass
+
         cc = ComBau(tit="UMA", txt="DUAS")
         j.t.POP._open = a = self.uma
         assert isinstance(cc, Cena), type(cc)
@@ -415,12 +426,14 @@ class SalaScoreTest(unittest.TestCase):
         j.a.bau._click(ev)
         assert j.a.alavanca in j.c.cbau.dentro
         # assert j.i.cena is j.c.cbau, "cena é %s" % j.i.cena
-        call_cbau = {'doc_id': '00000000000000000000', 'carta': 'cbau', 'casa': (0, 0), 'move': (555, 666),
-                     'ponto': 2, 'valor': "__JOGO__", 'tempo': ANY}
-        call_send = {'doc_id': '00000000000000000000', 'carta': '_ALAVANCA_', 'casa': (111, 222), 'move': (-111, -111),
-                     'ponto': 4, 'valor': "cbau", 'tempo': ANY}
-        call_bau = {'doc_id': '00000000000000000000', 'carta': '_BAU_', 'casa': (100, 200), 'move': (-111, -111),
-                    'ponto': 3, 'valor': "cesq", 'tempo': ANY}
+        call_cbau = json.dumps({'doc_id': '00000000000000000000', 'carta': 'cbau', 'casa': (0, 0), 'move': (555, 666),
+                                'ponto': 2, 'valor': "__JOGO__", 'tempo': self.ms})
+        call_send = json.dumps(
+            {'doc_id': '00000000000000000000', 'carta': '_ALAVANCA_', 'casa': [111, 222], 'move': [-111, -111],
+             'ponto': 4, 'valor': "cbau", 'tempo': self.ms})
+        call_bau = json.dumps(
+            {'doc_id': '00000000000000000000', 'carta': '_BAU_', 'casa': (100, 200), 'move': [-111, -111],
+             'ponto': 3, 'valor': "cesq", 'tempo': self.ms})
         calls = [call(call_bau), call(call_send), call(call_cbau)]
         self.send.assert_has_calls(calls)
 
@@ -433,8 +446,9 @@ class SalaScoreTest(unittest.TestCase):
         j.i.elt.__le__ = MagicMock(name="Enter Elt")
         j.i.bota(j.a.alavanca)
         assert j.a.alavanca in j.i.inventario, j.i.inventario
-        call_send = {'doc_id': '00000000000000000000', 'carta': '_ALAVANCA_', 'casa': (111, 222), 'move': (-111, -111),
-                     'ponto': 4, 'valor': "__INVENTARIO__", 'tempo': ANY}
+        call_send = json.dumps(
+            {'doc_id': '00000000000000000000', 'carta': '_ALAVANCA_', 'casa': [111, 222], 'move': [-111, -111],
+             'ponto': 4, 'valor': "__INVENTARIO__", 'tempo': self.ms})
         self.send.assert_called_with(call_send)
 
     def test_bota_bau_sala_dir(self):
@@ -447,11 +461,11 @@ class SalaScoreTest(unittest.TestCase):
         j.a.bau.vai = lambda *_: j.c.cdir.bota(j.a.bau)
         j.a.bau._click(TNoEv(123, 456))
         assert j.a.bau in j.c.cdir.dentro, j.c.cdir.dentro
-        call_send = {'doc_id': '00000000000000000000', 'carta': '_ALAVANCA_', 'casa': (111, 222), 'move': (-111, -111),
-                     'ponto': 4, 'valor': "cbau", 'tempo': ANY}
-        call_bau = {'doc_id': '00000000000000000000', 'carta': '_BAU_', 'casa': (100, 200), 'move': (123, 456),
-                    'ponto': 3, 'valor': "cdir", 'tempo': ANY}
-        call_bau_esq = dict(call_bau)
-        call_bau_esq.update(valor="cesq", move=(-111, -111))
+        call_send = json.dumps({'doc_id': '00000000000000000000', 'carta': '_ALAVANCA_', 'casa': [111, 222],
+                                'move': [-111, -111], 'ponto': 4, 'valor': "cbau", 'tempo': self.ms})
+        call_bau = json.dumps({'doc_id': '00000000000000000000', 'carta': '_BAU_', 'casa': (100, 200),
+                               'move': (123, 456), 'ponto': 3, 'valor': "cdir", 'tempo': self.ms})
+        call_bau_esq = json.dumps({'doc_id': '00000000000000000000', 'carta': '_BAU_', 'casa': (100, 200),
+                                   'move': [-111, -111], 'ponto': 3, 'valor': "cesq", 'tempo': self.ms})
         calls = [call(call_bau_esq), call(call_send), call(call_bau)]
         self.send.assert_has_calls(calls)

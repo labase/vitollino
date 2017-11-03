@@ -22,9 +22,7 @@
 .. moduleauthor:: Carlo Oliveira <carlo@nce.ufrj.br>
 
 """
-# from bottle import default_app, route, view, get, post, static_file, request, redirect, run, TEMPLATE_PATH
 from random import randint
-
 from bottle import default_app, view, get, post, request, static_file, run
 import logging as log
 import lab.model.modelo as database
@@ -67,7 +65,7 @@ def register_user():
     global LAST
     jsondata = retrieve_params(request.params)
     jsondata = list(jsondata.values())[0]
-    gid = "010101"  # database.DRECORD.save(jsondata)
+    gid = database.DRECORD.save(jsondata)
     log.debug('/record/register %s', str(jsondata))
     LAST = gid
     return dict(doc_id=gid, nodekey=P_N_O_D_E_D, lastid=LAST)
@@ -75,15 +73,19 @@ def register_user():
 
 @post('/store')
 def store():
+    jsonreq ="_NONE_"
     try:
-        jsondata = retrieve_params(request.params)
+        log.debug('/store json %s', str(request.headers['Content-Type']))
+        jsonreq = request.json
+        jsondata = retrieve_params(jsonreq)
         record_id = list(jsondata.keys())[0]
         score = jsondata[record_id]
         record = database.DRECORD.append(record_id, score)
         log.debug('/store: %s -> %s', record_id, score)
-        return record
+        return str(record)
     except Exception:
-        return "Movimento de peça não foi gravado %s" % str(request.params.values())
+        log.debug('/store Exception: -> %s', jsonreq)
+        return "Movimento de peça não foi gravado %s" % str(jsonreq)
 
 
 @get('/<filename:re:.*\.py>')

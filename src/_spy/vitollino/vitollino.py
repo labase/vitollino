@@ -19,6 +19,8 @@
 """
 Gerador de labirintos e jogos tipo 'novel'.
 """
+import json
+
 from browser import document, html
 from browser import window as win
 from browser import ajax
@@ -241,7 +243,8 @@ class Inventario:
         req.open(method, url, True)
         # req.set_header('content-type', 'application/x-www-form-urlencoded')
         req.set_header("Content-Type", "application/json; charset=utf-8")
-        # print("def send", data)
+        print("def send", data)
+        data = json.dumps(data)
         req.send(data)
 
 

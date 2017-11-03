@@ -51,7 +51,7 @@
 
         <script type="text/python">
             from lab.views.main import main
-            main("{{lastid}}","{{ nodekey }}")
+            main({{lastid}},"{{ nodekey }}")
         </script>
         <style type="text/css">
             .center {
