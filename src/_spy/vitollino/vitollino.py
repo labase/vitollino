@@ -104,12 +104,12 @@ class PATTERN:
 
 
 def singleton(class_):
-    instances = {}
 
     def getinstance(*args, **kwargs):
-        if class_ not in instances:
-            instances[class_] = class_(*args, **kwargs)
-        return instances[class_]
+
+        if not getattr(class_,"__INSTANCE__", None):
+            class_.__INSTANCE__ = class_(*args, **kwargs)
+        return class_.__INSTANCE__
 
     return getinstance
 
@@ -118,6 +118,9 @@ def singleton(class_):
 class NoEv:
     x = -100
     y = -100
+    def __init__(self):
+        self.x = -100
+        self.y = -100
 
     def stopPropagation(self):
         pass
@@ -370,10 +373,26 @@ class Portal:
             @property
             def img(self):
                 return self.destino.img
+            """
+            @property
+            def x(self, value):
+                self.elt.left = value
+
+            @property
+            def y(self, value):
+                self.elt.top = value
+
+            @property
+            def w(self, value):
+                self.elt.width = value
+
+            @property
+            def h(self, value):
+                self.elt.height = value
+            """
 
             def __eq__(self, other):
                 return other == self.destino
-
         _ = style.update({"min-height": style["height"]}) if "height" in style else None
         sty = Portal.PORTAIS.get(portal, ZSTYLE)
         self.style.update(sty)
@@ -382,8 +401,11 @@ class Portal:
         self.elt = ptc.elt
         return self.cena
 
-    def p(self, style=NS, **kwargs):
-        [self.__setup__(cena, portal, style) for portal, cena in kwargs.items() if cena != NADA]
+    def p(self, **kwargs):
+        style=dict(NS)
+        styl=kwargs.pop("style") if "style" in kwargs else {}
+        style.update(**styl)
+        [self.__setup__(cena, portal, style=style) for portal, cena in kwargs.items() if portal in "NSLO" and cena != NADA]
         return self.cena
 
 
@@ -758,7 +780,11 @@ class Cursor:
             def mouse_up(self, ev):
                 outer.cursor = outer.noop
 
+
         class Move(Noop):
+            def __init__(self):
+                pass
+
             def mouse_move(self, ev):
                 delta = Point(int(alvo.style.left.split("px")[0]), int(alvo.style.top.split("px")[0])) \
                         + Point(ev.x, ev.y) - outer.ponto
@@ -775,6 +801,9 @@ class Cursor:
                 outer.current = outer.resize
 
         class Resize(Noop):
+            def __init__(self):
+                pass
+
             def mouse_move(self, ev):
                 delta = Point(int(alvo.style.width.split("px")[0]), int(alvo.style.height.split("px")[0])) \
                         + Point(ev.x, ev.y) - outer.ponto
@@ -825,7 +854,7 @@ class Cursor:
         self.elt.onmousedown = _mouse_down
         self.elt.onmouseup = _mouse_up
         self.elt.onmousemove = _mouse_move
-        # self.elt.onmouseover = _mouse_over
+        self.elt.onmouseover = _mouse_over
 
 
 class Dragger:

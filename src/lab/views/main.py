@@ -33,8 +33,10 @@ IMG = dict(
     A_LESTE="https://i.imgur.com/sivjAnO.png",
     A_SUL="https://i.imgur.com/otHJhF0.png",
 
-    B_NORTE="https://i.imgur.com/40K5493.png", B_LESTE="https://i.imgur.com/R3bpFXD.png",
+    # B_NORTE="https://i.imgur.com/40K5493.png", B_LESTE="https://i.imgur.com/R3bpFXD.png",
     B_OESTE="https://i.imgur.com/dlxY8hi.png", B_SUL="https://i.imgur.com/eYM3Yp9.png",
+    B_NORTE="https://activufrj.nce.ufrj.br/file/SuperPythonEM/rect3569.jpg",
+    B_LESTE="https://activufrj.nce.ufrj.br/file/SuperPythonEM/rect3565.jpg",
 
     C_LESTE="https://i.imgur.com/94V79TA.png", C_NORTE="https://i.imgur.com/YJfnhy9.png",
     C_OESTE="https://i.imgur.com/Fzz2FNz.png", C_SUL="https://i.imgur.com/LFKXlB1.png",
@@ -80,7 +82,8 @@ IMG = dict(
 )
 PROP = dict(
     NOTE="https://i.imgur.com/SghupND.png", LIVRO="https://i.imgur.com/yWylotH.png?1",
-    FORCE="https://i.imgur.com/aLTJY2B.png"
+    FORCE="https://i.imgur.com/aLTJY2B.png",
+    FAKEOB = "https://upload.wikimedia.org/wikipedia/commons/3/3d/Simple_Rectangle_-_Semi-Transparent.svg"
 )
 
 
@@ -97,18 +100,18 @@ def cria_lab():
     print("cria_lab", blqa.img)
     blqa.fecha()
     blqb.fecha()
-    # j.s.MANSÃO_FACHADA.leste.vai()
-    j.s.MANSÃO_HALL.oeste.vai()
+    j.s.MANSÃO_HALL.leste.vai()
+    # j.s.MANSÃO_HALL.oeste.vai()
 
 
 class Note:
     def __init__(self):
-        self.onde = self.cena = j.s.MANSÃO_HALL.oeste
+        self.onde = self.cena = j.s.MANSÃO_HALL.leste
         print("implanta_livro_de_notas", self.cena.img)
         self.livro = Cena(PROP["LIVRO"])
         self.papel = Elemento(
-            img=PROP["NOTE"], tit="caderno de notas", vai=self.pega_papel, style=dict(
-                left=350, top=550, width=60, height="80px"))
+            img=PROP["FAKEOB"], tit="Um lavatorio", vai=self.pega_papel, style=dict(
+                left=360, top=356, width=170, height="111px"))
         self.implanta_livro_de_notas()
         self.div = html.DIV(style=dict(
             position="absolute", left=45, top=70, width=450, background="transparent", border="none"))
@@ -120,7 +123,7 @@ class Note:
     def implanta_livro_de_notas(self):
         print("implanta_livro_de_notas", self.papel.img)
         from _spy.vitollino.vitollino import Cursor
-        Cursor(self.papel.elt)
+        # Cursor(self.papel.elt)
         self.papel.entra(self.cena)
 
     def pega_papel(self, _=0):
@@ -161,7 +164,7 @@ def main(*_):
     # j.m("https://is.gd/Ldlg0V")
     cria_lab()
     Note()
-    Force()
+    #Force()
     pass
 
 

@@ -40,7 +40,7 @@ def retrieve_params(req):
     return {doc_id: data}
 
 
-@get('/')
+@get('/_')
 @view('index')
 def register_screen():
     """Return a peer id to identify the user.
@@ -55,7 +55,7 @@ def register_screen():
     return dict(nodekey=P_N_O_D_E_D, lastid=LAST)
 
 
-@get('/register')
+@get('/')
 @view('game')
 def register_user():
     """Return a peer id to identify the user.
@@ -63,10 +63,11 @@ def register_user():
     :return: page with Brython client.
     """
     global LAST
-    jsondata = retrieve_params(request.params)
-    jsondata = list(jsondata.values())[0]
-    gid = database.DRECORD.save(jsondata)
-    log.debug('/record/register %s', str(jsondata))
+    # jsondata = retrieve_params(request.params)
+    # jsondata = list(jsondata.values())[0]
+    # gid = database.DRECORD.save(jsondata)
+    gid = 11111
+    # log.debug('/record/register %s', str(jsondata))
     LAST = gid
     return dict(doc_id=gid, nodekey=P_N_O_D_E_D, lastid=LAST)
 

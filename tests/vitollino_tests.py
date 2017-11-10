@@ -59,6 +59,9 @@ class CenaTest(unittest.TestCase):
         self.meio = Cena("_IMG_", nome="meio")
         self.app = Cena("_IMG_", self.gui, self.meio, nome="app")
 
+    def tearDown(self):
+        self.gui = self.pdiv = self.meio = self.app = None
+
     def test_esquerda(self):
         """Cena esquerda vai é chamado."""
         self.app.vai_esquerda()
@@ -97,6 +100,26 @@ class CenaTest(unittest.TestCase):
         self.meio.elt.__le__.assert_called_once_with(p.elt)
         assert "cursor" in p.style, "O estilo do portal é {p.style}"
         assert p.style["cursor"] == "n-resize", "O estilo do cursor é {p.style['cursor']}"
+
+    def test_portal_estilizado(self):
+        """Adiciona portal com estilo"""
+        self.meio.elt = MagicMock(name="MEIOPDIVEST")
+        self.meio.elt.__le__ = MagicMock(name="PDIVEST")
+        p = self.meio.portal(N=self.app, style=dict(left=222))
+        self.meio.elt.__le__.assert_called_with(p.elt)
+        assert "cursor" in p.style, "O estilo do portal é {p.style}"
+        assert p.style["cursor"] == "n-resize", "O estilo do cursor é {p.style['cursor']}"
+        assert p.style["left"] == 222, "O estilo do cursor é p.style['cursor'] {}".format(p.style["left"])
+
+    def test_portal_nao_estilizado(self):
+        """Adiciona portal sem estilo"""
+        self.meio.elt = MagicMock(name="MEIOPDIVEST")
+        self.meio.elt.__le__ = MagicMock(name="PDIVEST")
+        p = self.meio.portal(O=self.app)
+        self.meio.elt.__le__.assert_called_with(p.elt)
+        assert "cursor" in p.style, "O estilo do portal é {p.style}"
+        assert p.style["cursor"] == "w-resize", "O estilo do cursor é p.style['cursor'] {}".format(p.style["cursor"])
+        assert p.style["left"] == 0, "O estilo do cursor é p.style['cursor'] {}".format(p.style["left"])
 
     def test_decora_portal(self):
         """Adiciona portal decora"""

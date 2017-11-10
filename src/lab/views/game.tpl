@@ -50,7 +50,7 @@
         <script type="text/javascript" src="https://cdn.rawgit.com/brython-dev/brython/3.3.4/www/src/brython.js"></script>
 
         <script type="text/python">
-            from lab.views.main import main
+            from lab.views.marcela import main
             main({{lastid}},"{{ nodekey }}")
         </script>
         <style type="text/css">
