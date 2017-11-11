@@ -93,8 +93,8 @@ class CenaTest(unittest.TestCase):
 
     def test_portal(self):
         """Adiciona portal"""
-        self.meio.elt = MagicMock()
-        self.meio.elt.__le__ = self.pdiv
+        self.meio.elt = MagicMock(name="ELT")
+        self.meio.elt.__le__ = MagicMock(name="ELT__le__")
         p = j.p(self.meio, N=self.app)
         assert p.cena == self.meio
         self.meio.elt.__le__.assert_called_once_with(p.elt)
@@ -106,7 +106,7 @@ class CenaTest(unittest.TestCase):
         self.meio.elt = MagicMock(name="MEIOPDIVEST")
         self.meio.elt.__le__ = MagicMock(name="PDIVEST")
         p = self.meio.portal(N=self.app, style=dict(left=222))
-        self.meio.elt.__le__.assert_called_with(p.elt)
+        self.meio.elt.__le__.assert_called_once_with(p.elt)
         assert "cursor" in p.style, "O estilo do portal é {p.style}"
         assert p.style["cursor"] == "n-resize", "O estilo do cursor é {p.style['cursor']}"
         assert p.style["left"] == 222, "O estilo do cursor é p.style['cursor'] {}".format(p.style["left"])
@@ -116,7 +116,7 @@ class CenaTest(unittest.TestCase):
         self.meio.elt = MagicMock(name="MEIOPDIVEST")
         self.meio.elt.__le__ = MagicMock(name="PDIVEST")
         p = self.meio.portal(O=self.app)
-        self.meio.elt.__le__.assert_called_with(p.elt)
+        self.meio.elt.__le__.assert_called_once_with(p.elt)
         assert "cursor" in p.style, "O estilo do portal é {p.style}"
         assert p.style["cursor"] == "w-resize", "O estilo do cursor é p.style['cursor'] {}".format(p.style["cursor"])
         assert p.style["left"] == 0, "O estilo do cursor é p.style['cursor'] {}".format(p.style["left"])
@@ -310,6 +310,7 @@ class SalaCDialogoTest(unittest.TestCase):
     def setUp(self):
         self.uma = MagicMock()
         self.outra = MagicMock()
+        self.uma.__le__ = self.outra.__le__ = MagicMock()
 
     def _cria_cenas_sala(self):
         """Cenas e sala c criadas."""

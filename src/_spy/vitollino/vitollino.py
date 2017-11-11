@@ -25,6 +25,9 @@ from browser import document, html
 from browser import window as win
 from browser import ajax
 
+CURSOR_STYLE = 'width: {}px, height: {}px, min-height: {}px, border-radius: 30px, left:{}px, top: {}px, position: absolute'
+CURSOR_ELEMENT = 'left={}, top={}, width={}, height={}'
+
 NOSCORE = dict(ponto=0, valor=0, carta=None, casa=None, move=None)
 NOSC = {}
 SZ = dict(W=300, H=300)
@@ -328,8 +331,8 @@ class Portal:
     Z = ZSTYLE
     PORTAIS = dict(N=NSTYLE, L=LSTYLE, S=SSTYLE, O=OSTYLE, Z=ZSTYLE)
 
-    def __init__(self, cena=None, **kwargs):
-        self.kwargs = kwargs
+    def __init__(self, cena=None, debug_=False, **kwargs):
+        self.kwargs, self.debug = kwargs, debug_
         self.style = ZSTYLE
         if cena:
             self.cena = cena
@@ -347,13 +350,15 @@ class Portal:
 
     def __setup__(self, cena, portal, style=NS):
         class Portico:
-            def __init__(self, origem, destino, portal_, style_):
+            def __init__(self, origem, destino, portal_, style_, debug=False):
                 self.origem, self.destino, self.portal_, self.style_ = origem, destino, portal_, style_
                 self.elt = html.DIV(style=self.style_)
                 self.elt.onclick = lambda *_: self.vai()
                 Droppable(self.elt, cursor="not-allowed")
                 if isinstance(self.origem, Cena):
                     self.origem.elt <= self.elt
+                    if debug:
+                        Cursor(self.elt, self.origem.elt)
                     setattr(self.origem, portal, self)
                 self.vai = self.vai
                 self._vai = self.vai
@@ -393,11 +398,11 @@ class Portal:
 
             def __eq__(self, other):
                 return other == self.destino
-        _ = style.update({"min-height": style["height"]}) if "height" in style else None
+        _ = style.update(**{"min-height": "%dpx" % style["height"]}) if "height" in style else None
         sty = Portal.PORTAIS.get(portal, ZSTYLE)
         self.style.update(sty)
         self.style.update(style)
-        ptc = Portico(self.cena, cena, portal, self.style)
+        ptc = Portico(self.cena, cena, portal, self.style, debug=self.debug)
         self.elt = ptc.elt
         return self.cena
 
@@ -405,7 +410,8 @@ class Portal:
         style=dict(NS)
         styl=kwargs.pop("style") if "style" in kwargs else {}
         style.update(**styl)
-        [self.__setup__(cena, portal, style=style) for portal, cena in kwargs.items() if portal in "NSLO" and cena != NADA]
+        [self.__setup__(cena, portal, style=style) for portal, cena in kwargs.items()
+         if (portal in "NSLO" and cena != NADA)]
         return self.cena
 
 
@@ -730,6 +736,9 @@ class Point(list):
         self.y -= other.y
         return self
 
+    def px(self):
+        return ["{}px".format(ordin) for ordin in (self.x, self.y)]
+
     def __iter__(self):
         return (ordin for ordin in (self.x, self.y))
 
@@ -742,8 +751,8 @@ class Point(list):
 
 class Cursor:
 
-    def __init__(self, alvo):
-        self.alvo, self.ponto = alvo, None
+    def __init__(self, alvo, cena=DOC_PYDIV):
+        self.alvo, self.cena, self.ponto = alvo, cena, None
         outer = self
 
         class Noop:
@@ -754,12 +763,13 @@ class Cursor:
                 pass
 
             @staticmethod
-            def update_style(styler, new_style):
+            def update_style(styler, new_style, delta=None):
                 cur_style = dict(outer.style)
                 point = Point(outer.alvo.style.left, outer.alvo.style.top)
-                delta = Point(outer.alvo.style.width, outer.alvo.style.height)
+                delta = delta if delta else Point(outer.alvo.style.width, outer.alvo.style.minHeight)
                 print("delta.x, delta.y", outer.elt.style.left, outer.elt.style.top, delta.x, delta.y)
                 cur_style.update(cursor=styler, left=point.x, top=point.y, width=delta.x, height=delta.y, **new_style)
+                cur_style["min-height"] = "{}px".format(delta.y)
                 return cur_style
 
             def next(self, ev):
@@ -779,14 +789,14 @@ class Cursor:
 
             def mouse_up(self, ev):
                 outer.cursor = outer.noop
+                st  = self.outer.elt.style
+                width, height, left, top = st.width, st.minHeight, st.left, st.top
+                self.outer.elt.title = CURSOR_ELEMENT.format(left, top, width, height)
 
 
         class Move(Noop):
-            def __init__(self):
-                pass
-
             def mouse_move(self, ev):
-                delta = Point(int(alvo.style.left.split("px")[0]), int(alvo.style.top.split("px")[0])) \
+                delta = Point(int(alvo.style.left.rstrip("px")), int(alvo.style.top.rstrip("px"))) \
                         + Point(ev.x, ev.y) - outer.ponto
                 alvo.style.left, alvo.style.top = delta
                 outer.elt.left, outer.elt.top = delta
@@ -801,14 +811,15 @@ class Cursor:
                 outer.current = outer.resize
 
         class Resize(Noop):
-            def __init__(self):
-                pass
-
             def mouse_move(self, ev):
-                delta = Point(int(alvo.style.width.split("px")[0]), int(alvo.style.height.split("px")[0])) \
+                delta = Point(int(outer.elt.style.width.rstrip("px")), int(outer.elt.style.minHeight.rstrip("px"))) \
                         + Point(ev.x, ev.y) - outer.ponto
-                outer.elt.width, outer.elt.height = delta
-                alvo.style.width, alvo.style.height = delta
+                outer.elt.style.width, outer.elt.style.minHeight = delta.px()
+                alvo.style.width, alvo.style.minHeight = delta.px()
+                outer.elt.style.height = alvo.style.height = delta.px()[1]
+                # alvo.style = self.update_style("default", {}, delta)
+                # outer.elt.style = self.update_style("default", PATTERN.BOKEH, delta)
+                # print("mouse_move", alvo.style.minHeight, delta)
                 outer.ponto = Point(ev.x, ev.y)
 
             def mouse_over(self, ev):
@@ -831,25 +842,30 @@ class Cursor:
 
         def _mouse_over(ev): return self.cursor.mouse_over(ev)
 
+        def _strip_kind(dm):
+            kinds = "px %".split()
+            kind = [k for k in kinds if isinstance(dm, str) and (k in dm)]
+            # dm = str(dm) if isinstance(dm, int) else dm if isinstance(dm, str) else "0"
+            return int(dm.rstrip(kind[0])) if kind else int(dm) if dm else 0
+
         self.noop, self.move, self.resize = self.state = [Noop(), Move(), Resize()]
         self.cursor = self.noop
         self.current = self.move
         style = dict(**ISTYLE)
-        dims = [self.alvo.style.top, self.alvo.style.height, self.alvo.style.left, self.alvo.style.width]
-        dims = [int(dm.split("px")[0]) for dm in dims]
+        dims = [self.alvo.style.top, self.alvo.style.minHeight, self.alvo.style.left, self.alvo.style.width]
+        print("dim left, top = ", dims)
+        dims = [_strip_kind(dm) for dm in dims]
         top, height, left, width = dims
-        left, top = left + width//2 - 30, top + height//2 - 30
-        print("dim left, top = ", dims, top, left)
-        cstyle = 'width: {}px, height: {}px, min-height: {}px, border-radius: 30px,' \
-                 ' left:{}px, top: {}px, position: absolute'
+        #left, top = left + width//2 - 30, top + height//2 - 30
+        cstyle = CURSOR_STYLE
         cstyle = cstyle.format(width, height,  height, left, top)
         print("cstyle = ", cstyle)
         cstyle = {k.strip(): v for k, v in (tp.split(":") for tp in cstyle.replace("\n", "").split(", ") if tp)}
         style.update(**cstyle)
         style.update(**PATTERN.STARRY)
         self.style = style
-        self.elt = html.DIV(Id="__cursor__", style=style)
-        DOC_PYDIV <= self.elt
+        self.elt = html.DIV(Id="__cursor__", style=style, title="")
+        self.cena <= self.elt
         self.elt.onclick = next_state
         self.elt.onmousedown = _mouse_down
         self.elt.onmouseup = _mouse_up

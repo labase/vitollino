@@ -54,15 +54,17 @@ class JogoMarcela:
         self._inicia_jogo()
 
     def _ajusta_hot_points(self):
-        JOGO.c.abriu_o_armário.portal(L=JOGO.c.o_asseio,
-                                      style=dict(left=100, top=10, background="white", opacity=0.5))
-        # JOGO.c.descontaminou.portal(L=JOGO.c.saiu,
-        #                               style=dict(left=100, top=10, background="white", opacity=0.5))
-        #JOGO.c.C1Q2M8.portal(L=JOGO.c.C1Q3M1)
+        style_vestiário = dict(left=429, top=112, width=109, height=300, background="white", opacity=0.5)
+        style_abriu_o_armário = dict(left=429, top=112, width=109, height=300, background="white", opacity=0.5)
+        style_o_asseio=dict(left=354, top=653, width=60, height=60, background="white", opacity=0.5)
+        style_acionou_a_pia=dict(left=354, top=653, width=60, height=60, background="white", opacity=0.5)
+
+        JOGO.c.vestiário.portal(L=JOGO.c.abriu_o_armário, style=style_vestiário)
+        JOGO.c.abriu_o_armário.portal(L=JOGO.c.o_asseio, style=style_abriu_o_armário)
+        JOGO.c.o_asseio.portal(L=JOGO.c.acionou_a_pia, style=style_o_asseio)
 
     def _inicia_jogo(self):
         JOGO.c.vestiário.vai()
-        #JOGO.c.vestiu_a_roupa.vai()
 
     def _cria_cenas(self, cenas):
         """
@@ -74,13 +76,12 @@ class JogoMarcela:
         :return: cenário, uma lista de quadros criados
         """
         JOGO.c.c(**cenas)
-        return [self._cria_cena(quadro+1, self.quadros[quadro]) for quadro in range(0,3)]
+        return []  # [self._cria_cena(quadro+1, self.quadros[quadro]) for quadro in range(0,3)]
 
     def _cria_cena(self, quadro, momentos):
         momentos_do_quadro = LEGENDAS  # ["C1Q{}M{}".format(quadro, momento) for momento in momentos]
         momento_atual_e_seguinte = zip(momentos_do_quadro, momentos_do_quadro[1:])
-        return [getattr(JOGO.c, atual).portal(L=getattr(JOGO.c, seguinte),
-                                              style=dict(left=100, top=10, background="white", opacity=0.5))
+        return [getattr(JOGO.c, atual).portal(L=getattr(JOGO.c, seguinte))
         for atual, seguinte in momento_atual_e_seguinte]
 
 
