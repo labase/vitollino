@@ -19,7 +19,7 @@
 """
 Fachada para acessar a API do vitollino.
 """
-from . import Cena, Salao, Sala, Elemento, Popup, Labirinto, INVENTARIO, Portal, Dropper, Droppable
+from . import Cena, Salao, Sala, Elemento, Popup, Labirinto, INVENTARIO, Portal, Dropper, Droppable, Texto
 
 
 class Jogo:

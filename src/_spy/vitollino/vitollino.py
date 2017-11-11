@@ -332,7 +332,7 @@ class Portal:
     PORTAIS = dict(N=NSTYLE, L=LSTYLE, S=SSTYLE, O=OSTYLE, Z=ZSTYLE)
 
     def __init__(self, cena=None, debug_=False, **kwargs):
-        self.kwargs, self.debug = kwargs, debug_
+        self.portal, self.kwargs, self.debug = None, kwargs, debug_
         self.style = ZSTYLE
         if cena:
             self.cena = cena
@@ -353,27 +353,37 @@ class Portal:
             def __init__(self, origem, destino, portal_, style_, debug=False):
                 self.origem, self.destino, self.portal_, self.style_ = origem, destino, portal_, style_
                 self.elt = html.DIV(style=self.style_)
-                self.elt.onclick = lambda *_: self.vai()
+                self.elt.onclick = self._onclick
                 Droppable(self.elt, cursor="not-allowed")
                 if isinstance(self.origem, Cena):
                     self.origem.elt <= self.elt
                     if debug:
                         Cursor(self.elt, self.origem.elt)
                     setattr(self.origem, portal, self)
-                self.vai = self.vai
-                self._vai = self.vai
+                self._vai = self.do_vai
 
+            def _onclick(self, *args):
+                return self._vai(*args)
             def __call__(self, *args, **kwargs):
-                return self.vai(*args, **kwargs)
+                return self._vai(*args, **kwargs)
 
             def fecha(self, *_):
-                self.vai = lambda *_: None
+                self._vai = lambda *_: None
 
             def abre(self, *_):
-                self.vai = self._vai
+                self._vai = self.do_vai
 
-            def vai(self, ev=NoEv()):
+            def do_vai(self, ev=NoEv()):
+                print("vai", self.destino.nome)
                 return self.destino.vai(ev)
+
+            @property
+            def vai(self):
+                return self._vai
+
+            @vai.setter
+            def vai(self, value):
+                self._vai = value
 
             @property
             def img(self):
@@ -404,15 +414,19 @@ class Portal:
         self.style.update(style)
         ptc = Portico(self.cena, cena, portal, self.style, debug=self.debug)
         self.elt = ptc.elt
-        return self.cena
+        return ptc
 
     def p(self, **kwargs):
         style=dict(NS)
         styl=kwargs.pop("style") if "style" in kwargs else {}
         style.update(**styl)
-        [self.__setup__(cena, portal, style=style) for portal, cena in kwargs.items()
+        self.portal = [self.__setup__(cena, portal, style=style) for portal, cena in kwargs.items()
          if (portal in "NSLO" and cena != NADA)]
+        self.portal = self.portal[0] if self.portal else SalaCenaNula()
         return self.cena
+
+    def vai(self, *_):
+        self.portal.vai()
 
 
 ROSA = list("NLSO")
@@ -678,9 +692,13 @@ class Popup:
 
             def _close(self, *_):
                 self.popup.style = {"visibility": "hidden", "opacity": 0}
+                self.esconde()
 
             def _open(self, *_):
                 self.popup.style = {"visibility": "visible", "opacity": 0.7}
+
+            def esconde(self, *_):
+                ...
 
             def mostra(self, act, tit="", txt=""):
                 if tit or txt:
@@ -707,9 +725,28 @@ class Texto(Popup):
         self.elt = Popup.POP.popup
         cena <= self
 
+    def esconde(self, ev=NoEv):
+        ...
+
     def vai(self, ev=NoEv):
         Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
+        Popup.POP.esconde = self.esconde
         pass
+
+    @staticmethod
+    def texto(class_, tit="", txt="", **kwars):
+
+        def decorate(*args, **kwargs):
+
+            def decorate_vai(*_):
+                class_instance.texto.vai()
+            class_instance = class_(*args, **kwargs)
+            decorated_vai, class_instance.portal.vai = class_instance.portal.vai, decorate_vai
+            class_instance.texto = Texto(class_instance.cena, tit=tit, txt=txt, **kwars)
+            class_instance.texto.esconde = lambda *_: decorated_vai()
+            return class_instance
+
+        return decorate
 
 
 class Point(list):
@@ -1102,6 +1139,7 @@ class Jogo:
         self.salao = self.s = Salao
         self.algo = self.a = Elemento
         self.texto = self.t = Popup
+        self.nota = self.n = Texto
         self.labirinto = self.l = Labirinto
         self.inventario = self.i = INVENTARIO
         self.portal = self.p = Portal

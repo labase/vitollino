@@ -26,5 +26,6 @@ from .vitollino import INVENTARIO
 from .vitollino import Portal
 from .vitollino import Droppable
 from .vitollino import Dropper
-from .fachada import Jogo, JOGO
+from .vitollino import Texto
+from .vitollino import Jogo, JOGO
 __all__ = ["vitollino"]

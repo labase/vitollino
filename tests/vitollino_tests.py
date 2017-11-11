@@ -121,6 +121,25 @@ class CenaTest(unittest.TestCase):
         assert p.style["cursor"] == "w-resize", "O estilo do cursor é p.style['cursor'] {}".format(p.style["cursor"])
         assert p.style["left"] == 0, "O estilo do cursor é p.style['cursor'] {}".format(p.style["left"])
 
+    def test_notifica_portal(self):
+        """Adiciona notificação ao portal"""
+        self.meio.elt = MagicMock(name="MEIONOTI")
+        self.meio.elt.__le__ = MagicMock(name="NOTI")
+        p = j.n.texto(self.meio.portal, "oi", "ok")(O=self.app)
+        assert p.texto.tit == "oi"
+        self.meio.elt.__le__.assert_called_with(p.texto.elt)
+        texto_vai, p.texto.vai = p.texto.vai,  MagicMock(name="TEXTONOTI")
+        p.texto.vai.side_effect = texto_vai
+        self.app.vai = MagicMock(name="DESTNOTI")
+        p.vai()
+        p.texto.vai.assert_called()
+        self.app.vai.assert_not_called()
+        j.t.POP._close(None)
+        self.app.vai.assert_called()
+        assert "cursor" in p.style, "O estilo do portal é {p.style}"
+        assert p.style["cursor"] == "w-resize", "O estilo do cursor é p.style['cursor'] {}".format(p.style["cursor"])
+        assert p.style["left"] == 0, "O estilo do cursor é p.style['cursor'] {}".format(p.style["left"])
+
     def test_decora_portal(self):
         """Adiciona portal decora"""
 
@@ -493,3 +512,26 @@ class SalaScoreTest(unittest.TestCase):
                                    'move': [-111, -111], 'ponto': 3, 'valor': "cesq", 'tempo': self.ms})
         calls = [call(call_bau_esq), call(call_send), call(call_bau)]
         self.send.assert_has_calls(calls)
+
+
+def bmain(_=0):
+    suite = unittest.TestLoader().loadTestsFromTestCase(CenaTest)
+    unittest.TextTestRunner(verbosity=0).run(suite)
+    '''
+    import HTMLTestRunner
+    runner = HTMLTestRunner.HTMLTestRunner(
+                title='My unit test',
+                description='This demonstrates the report output by HTMLTestRunner.'
+                )
+
+    # Use an external stylesheet.
+    # See the Template_mixin class for more customizable options
+    runner.STYLESHEET_TMPL = '<link rel="stylesheet" href="my_stylesheet.css" type="text/css">'
+
+    # run the test
+    runner.run(CenaTest)
+    # from HTMLTestRunner import main
+    # main(modul)
+'''
+if __name__ == "__main__":
+    bmain()

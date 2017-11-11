@@ -59,7 +59,7 @@ class JogoMarcela:
         style_o_asseio=dict(left=354, top=653, width=60, height=60, background="white", opacity=0.5)
         style_acionou_a_pia=dict(left=354, top=653, width=60, height=60, background="white", opacity=0.5)
 
-        JOGO.c.vestiário.portal(L=JOGO.c.abriu_o_armário, style=style_vestiário)
+        JOGO.n.texto(JOGO.c.vestiário.portal, "oi", "ok")(L=JOGO.c.abriu_o_armário, style=style_vestiário)
         JOGO.c.abriu_o_armário.portal(L=JOGO.c.o_asseio, style=style_abriu_o_armário)
         JOGO.c.o_asseio.portal(L=JOGO.c.acionou_a_pia, style=style_o_asseio)
 
