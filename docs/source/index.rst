@@ -17,6 +17,7 @@ Tutorial
 .. toctree::
     :maxdepth: 2
 
+    marcela.rst
     vito_a.rst
 
 Desenvolvimento

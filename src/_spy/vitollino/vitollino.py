@@ -19,15 +19,27 @@
 """
 Gerador de labirintos e jogos tipo 'novel'.
 """
-from browser import document, html
+import json
 
+from browser import document, html
+from browser import window as win
+from browser import ajax
+
+CURSOR_STYLE = 'width: {}px, height: {}px, min-height: {}px, border-radius: 30px, left:{}px, top: {}px, position: absolute'
+CURSOR_ELEMENT = 'left={}, top={}, width={}, height={}'
+
+NOSCORE = dict(ponto=0, valor=0, carta=None, casa=None, move=None)
+NOSC = {}
+SZ = dict(W=300, H=300)
 DOC_PYDIV = document["pydiv"]
 ppcss = 'https://codepen.io/imprakash/pen/GgNMXO'
-STYLE = {'position': "absolute", 'width': 300, 'left': 0, 'top': 0, 'background': "white"}
-PSTYLE = {'position': "absolute", 'width': 300, 'left': 0, 'bottom': 0, 'background': "white"}
-LIMBOSTYLE = {'position': "absolute", 'width': 300, 'left': 10000, 'bottom': 0, 'background': "white"}
+STYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'top': 0}
+PSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 0, 'bottom': 0}
+LIMBOSTYLE = {'position': "absolute", 'width': SZ['W'], 'left': 10000, 'bottom': 0, 'background': "white"}
 ISTYLE = {'opacity': "inherited", 'height': 30, 'left': 0, 'top': 0, 'background': "white"}
-ESTYLE = {'opacity': "inherited", 'width': 30, 'height': 30, 'min-height': '30px', 'float': 'left', 'position': 'unset'}
+ESTYLE = {'opacity': "inherited", 'width': 30, 'height': "30px", 'min-height': '30px', 'float': 'left',
+          'position': 'unset'}
+EIMGSTY = {"max-width": "100%", "max-height": "100%", "width": "100%", "height": "100%"}
 STYLE["min-height"] = "300px"
 IMAGEM = ""
 NSTYLE = {'position': "absolute", 'width': "60%", 'left': "20%", 'top': 0, 'margin': "0%",
@@ -42,14 +54,86 @@ ZSTYLE = {'position': "absolute", 'width': "10%", 'margin': "0%",
           "min-height": "10%", "cursor": "zoom-in"}
 
 
+class PATTERN:
+    NOOP = {k.strip(): v for k, v in (tp.split(":") for tp in """""".replace("\n", "").split(";") if tp)}
+    STARRY = {k.strip(): v for k, v in (tp.split(":") for tp in """background-color:black; opacity:0.4;
+    background-image:
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+    radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+    background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
+    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;""".replace("\n", "").split(";") if tp)}
+
+    NCROSS = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.7;
+    background: 
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent),
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent) 30px 30px,
+    linear-gradient(#A8B1BB 8px, transparent 8px) 0 -4px,
+    linear-gradient(90deg, #A8B1BB 8px, transparent 8px) -4px 0;
+    background-color: slategray;
+    background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px;""".replace("\n", "").split(";") if tp)}
+
+    OCROSS = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.7;
+    background: 
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent),
+    radial-gradient(circle, transparent 20%, slategray 20%, slategray 80%, transparent 80%, transparent) 50px 50px,
+    linear-gradient(#A8B1BB 8px, transparent 8px) 0 -4px,
+    linear-gradient(90deg, #A8B1BB 8px, transparent 8px) -4px 0;
+    background-color: slategray;
+    background-size: 100px 100px, 100px 100px, 50px 50px, 50px 50px;""".replace("\n", "").split(";") if tp)}
+
+    BCROSS = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.7;
+    background-color: slategray;
+    background: 
+    radial-gradient(slategray 9px, transparent 10px),        
+    repeating-radial-gradient(slategray 0, slategray 4px, transparent 5px, transparent 15px,
+    slategray 16px, slategray 20px, transparent 21px, transparent 30px);    
+    background-size: 30px 30px, 90px 90px; 
+    background-position: 0 0;""".replace("\n", "").split(";") if tp)}
+
+    SHIPPO = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.5;background-color: #def;
+    background-image: radial-gradient(closest-side, transparent 98%, rgba(0,0,0,.3) 99%),
+    radial-gradient(closest-side, transparent 98%, rgba(0,0,0,.3) 99%);
+    background-size: 80px 80px;
+    background-position: 0 0, 40px 40px;""".replace("\n", "").split(";") if tp)}
+    RADGRAD = ", ".join(["rgba({a},{a},{a},{b}) {c}%".format(
+        a=200 if c % 2 else 20, b=0.6, c=c*10) for c in range(0, 11)])
+
+    BOKEH = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.5;
+    background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px, 100% 100%;background: 
+    radial-gradient({}) 0 0;""".replace("\n", "").format(RADGRAD).split(";") if tp)}
+# INVENTARIO = None
+
+
+def parametrized(dec):
+    def layer(*args, **kwargs):
+        def repl(f):
+            return dec(f, *args, **kwargs)
+        return repl
+    return layer
+
 def singleton(class_):
-    instances = {}
 
     def getinstance(*args, **kwargs):
-        if class_ not in instances:
-            instances[class_] = class_(*args, **kwargs)
-        return instances[class_]
+
+        if not getattr(class_,"__INSTANCE__", None):
+            class_.__INSTANCE__ = class_(*args, **kwargs)
+        return class_.__INSTANCE__
+
     return getinstance
+
+
+@singleton
+class NoEv:
+    x = -100
+    y = -100
+    def __init__(self):
+        self.x = -100
+        self.y = -100
+
+    def stopPropagation(self):
+        pass
 
 
 @singleton
@@ -58,6 +142,8 @@ class SalaCenaNula:
         self.esquerda, self.direita = [None] * 2
         self.salas = [None] * 5
         self.cenas = [self] * 4
+        self.img = "_NO_IMG_"
+        self.nome = "_NO_NAME_"
         self.init = self.init
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
 
@@ -75,51 +161,173 @@ class SalaCenaNula:
     def portal(self, *_, **__):
         pass
 
+
 NADA = SalaCenaNula().init()
 NS = {}
 NL = []
 
 
+class Musica(object):
+    def __init__(self, sound, loop=True, autoplay=True, sound_type="audio/mpeg"):
+        self.sound = html.AUDIO(src=sound, autoplay=autoplay, loop=loop, type=sound_type)
+        document.body <= self.sound
+
+
+@singleton
+class Inventario:
+    GID = "00000000000000000000"
+
+    def __init__(self, tela=DOC_PYDIV):
+        self.tela = tela
+        self.cena = None
+        self.nome = "__INVENTARIO__"
+        self.inventario = {}
+        self.opacity = 0
+        self.style = dict(**ISTYLE)
+        self.style["min-height"] = "30px"
+        self.elt = html.DIV(Id="__inv__", style=self.style)
+        self.elt.onclick = self.mostra
+        self.limbo = html.DIV(style=self.style)
+        self.limbo.style.left = "4000px"
+        self.mostra()
+        tela <= self.elt
+
+    def __le__(self, other):
+        if hasattr(other, 'elt'):
+            self.elt <= other.elt
+        else:
+            self.elt <= other
+
+    def inicia(self):
+        self.elt.html = ""
+        self.cena = None
+        self.opacity = 0
+        self.mostra()
+
+    def desmonta(self, _=0):
+        self.limbo <= self.elt
+
+    def monta(self, _=0):
+        self.tela <= self.elt
+
+    def mostra(self, _=0):
+        self.opacity = abs(self.opacity - 0.5)
+        self.elt.style.opacity = self.opacity
+
+    def bota(self, nome_item, item="", acao=None):
+        if isinstance(nome_item, str):
+            item_img = html.IMG(Id=nome_item, src=item, width=30, style=EIMGSTY)
+            self.elt <= item_img
+        else:
+            nome_item.entra(self)
+            item_img = nome_item.elt
+            item_img.style = ESTYLE
+        Dropper(item_img)
+        if acao:
+            item_img.onclick = lambda *_: acao()
+        else:
+            acao = lambda *_: None
+        self.inventario[nome_item] = acao
+
+    def tira(self, nome_item):
+        item_img = document[nome_item]
+        self.inventario.pop(nome_item, None)
+        self.limbo <= item_img
+
+    def score(self, casa, carta, move, ponto, valor):
+        data = dict(doc_id=INVENTARIO.GID, carta=carta, casa=casa, move=move, ponto=ponto, valor=valor,
+                    tempo=win.Date.now())
+        self.send('store', data)
+        print('store', data)
+
+    @staticmethod
+    def send(operation, data, action=lambda t: None, method="POST"):
+        def on_complete(request):
+            if int(request.status) == 200 or request.status == 0:
+                # print("req = ajax()== 200", request.text)
+                action(request.text)
+            else:
+                print("error " + request.text)
+
+        req = ajax()
+        req.bind('complete', on_complete)
+        # req.on_complete = on_complete
+        url = "/record/" + operation
+        req.open(method, url, True)
+        # req.set_header('content-type', 'application/x-www-form-urlencoded')
+        req.set_header("Content-Type", "application/json; charset=utf-8")
+        print("def send", data)
+        data = json.dumps(data)
+        req.send(data)
+
+
+INVENTARIO = Inventario()
+
+
 class Elemento:
     """
-    Representa um objeto que é representado por uma imagem em uma cena.
+    Um objeto de interação que é representado por uma imagem em uma cena.
+
+            papel = Elemento(
+             img="papel.png", tit="caderno de notas",
+             vai=pega_papel, style=dict(left=350, top=550, width=60))
+
 
     :param img: URL de uma imagem
     :param vai: função executada quando se clica no objeto
     :param style: dicionário com dimensões do objeto {"left": ..., "top": ..., width: ..., height: ...}
     :param tit: Texto que aparece quando se passa o mouse sobre o objeto
     :param alt: Texto para leitores de tela
-    :param tel: cena alternativa onde o objeto vai ser colocado
+    :param cena: cena alternativa onde o objeto vai ser colocado
+    :param score: determina o score para este elemento
     :param kwargs: lista de parametros nome=URL que geram elementos com este nome e a dada imagem
     """
     limbo = html.DIV(style=LSTYLE)
 
-    def __init__(self, img="", vai=None, style=NS, tit="", alt="", tel=DOC_PYDIV, **kwargs):
+    def __init__(self, img="", vai=None, style=NS, tit="", alt="", cena=INVENTARIO, score=NOSC, **kwargs):
+        self._auto_score = self.score if score else self._auto_score
         self.img = img
-        self.act = vai if vai else lambda _=0: None
-        self.tela = tel
+        self.vai = vai if vai else lambda _=0: None
+        self.cena = cena
         self.opacity = 0
         self.style = dict(**PSTYLE)
         # self.style["min-width"], self.style["min-height"] = w, h
         self.style.update(style)
         self.elt = html.DIV(Id=tit, style=self.style)
+        self.xy = (-111, -111)
+        self.scorer = dict(ponto=1, valor=cena.nome, carta=tit or img, casa=self.xy, move=None)
+        self.scorer.update(score)
         if img:
-            self.img = html.IMG(src=img, title=tit, alt=alt)
-            # self.elt <= self.img
+            self.img = html.IMG(src=img, title=tit, alt=alt, style=EIMGSTY)  # width=self.style["width"])
+            self.elt <= self.img
         self.elt.onclick = self._click
-        self.tela <= self.elt
         self.c(**kwargs)
 
-    def _click(self, _=None):
-        return self.act()
+    def _auto_score(self, **kwargs):
+        pass
 
-    def entra(self, cena, style=None):
-        self.elt.style = style if style else self.style
-        cena <= self.elt
+    def _click(self, ev=NoEv()):
+        self.xy = (ev.x, ev.y)
+        ev.stopPropagation()
+        return self.vai(ev)
+
+    def entra(self, cena, style=NOSC):
+        styler = dict(self.style)
+        styler.update(style)
+        self.elt.style = styler
+        self.cena = cena
+        self.scorer.update(valor=cena.nome, move=self.xy, casa=(styler["left"], styler["top"] if "top" in styler else 0))
+        self._auto_score(**self.scorer)
+        cena <= self
+
+    def score(self, **kwargs):
+        score = {key: kwargs[key] if key in kwargs else value for key, value in self.scorer.items()}
+        INVENTARIO.score(**score)
 
     @classmethod
-    def c(cls, **kwarg):
-        return [setattr(cls, nome, Elemento(img) if isinstance(img, str) else img) for nome, img in kwarg.items()]
+    def c(cls, **kwargs):
+        return [setattr(cls, nome, Elemento(**img) if isinstance(img, dict) else Elemento(img=img))
+                for nome, img in kwargs.items()]
 
 
 class Portal:
@@ -130,8 +338,8 @@ class Portal:
     Z = ZSTYLE
     PORTAIS = dict(N=NSTYLE, L=LSTYLE, S=SSTYLE, O=OSTYLE, Z=ZSTYLE)
 
-    def __init__(self, cena=None, **kwargs):
-        self.kwargs = kwargs
+    def __init__(self, cena=None, debug_=False, **kwargs):
+        self.portal, self.kwargs, self.debug = None, kwargs, debug_
         self.style = ZSTYLE
         if cena:
             self.cena = cena
@@ -143,31 +351,93 @@ class Portal:
                 style = ZSTYLE
                 super(CenaDecorada, self).__init__(*args, **kargs)
                 __portal.cena = self
-                [__portal.__setup__(cena, portal, style) for portal, cena in __portal.kwargs.items()]
+                [__portal.__setup__(acena, portal, style) for portal, acena in __portal.kwargs.items()]
 
         return CenaDecorada
 
     def __setup__(self, cena, portal, style=NS):
-        _ = style.update({"min-height": style["height"]}) if "height" in style else None
+        class Portico:
+            def __init__(self, origem, destino, portal_, style_, debug=False):
+                self.origem, self.destino, self.portal_, self.style_ = origem, destino, portal_, style_
+                self.elt = html.DIV(style=self.style_)
+                self.elt.onclick = self._onclick
+                Droppable(self.elt, cursor="not-allowed")
+                if isinstance(self.origem, Cena):
+                    self.origem.elt <= self.elt
+                    if debug:
+                        Cursor(self.elt, self.origem.elt)
+                    setattr(self.origem, portal, self)
+                self._vai = self.do_vai
+
+            def _onclick(self, *args):
+                return self._vai(*args)
+            def __call__(self, *args, **kwargs):
+                return self._vai(*args, **kwargs)
+
+            def fecha(self, *_):
+                self._vai = lambda *_: None
+
+            def abre(self, *_):
+                self._vai = self.do_vai
+
+            def do_vai(self, ev=NoEv()):
+                print("vai", self.destino.nome)
+                return self.destino.vai(ev)
+
+            @property
+            def vai(self):
+                return self._vai
+
+            @vai.setter
+            def vai(self, value):
+                self._vai = value
+
+            @property
+            def img(self):
+                return self.destino.img
+            """
+            @property
+            def x(self, value):
+                self.elt.left = value
+
+            @property
+            def y(self, value):
+                self.elt.top = value
+
+            @property
+            def w(self, value):
+                self.elt.width = value
+
+            @property
+            def h(self, value):
+                self.elt.height = value
+            """
+
+            def __eq__(self, other):
+                return other == self.destino
+        _ = style.update(**{"min-height": "%dpx" % style["height"]}) if "height" in style else None
         sty = Portal.PORTAIS.get(portal, ZSTYLE)
         self.style.update(sty)
         self.style.update(style)
-        self.elt = html.DIV(style=self.style)
-        self.elt.onclick = lambda _=0: cena.vai()
-        Droppable(self.elt, cursor="not-allowed")
-        if isinstance(self.cena, Cena):
-            self.cena.elt <= self.elt
-            setattr(self.cena, portal, cena)
-            self.__call__ = cena.vai
+        ptc = Portico(self.cena, cena, portal, self.style, debug=self.debug)
+        self.elt = ptc.elt
+        return ptc
+
+    def p(self, **kwargs):
+        style=dict(NS)
+        styl=kwargs.pop("style") if "style" in kwargs else {}
+        style.update(**styl)
+        self.portal = [self.__setup__(cena, portal, style=style) for portal, cena in kwargs.items()
+         if (portal in "NSLO" and cena != NADA)]
+        self.portal = self.portal[0] if self.portal else SalaCenaNula()
         return self.cena
 
-    def p(self, style=NS, **kwargs):
-        [self.__setup__(cena, portal, style) for portal, cena in kwargs.items() if cena != NADA]
-        return self.cena
+    def vai(self, *_):
+        self.portal.vai()
 
 
 ROSA = list("NLSO")
-CART = [(0, -1), (1, 0), (0, -1), (-1, 0)]
+CART = [(-1, 0), (0, 1), (1, 0), (0, -1)]  # [(i, j) for j, i in CART]
 
 
 class Labirinto:
@@ -181,29 +451,51 @@ class Labirinto:
 
     @staticmethod
     def m(cenas):
-        def vizinhos(ii, jj, cns=cenas):
-            return [cns[ii + m][jj + n] if 0 <= ii + m < len(cns) and 0 <= jj + n < len(cns[ii + m]) else NADA for m, n
-                    in CART]
+        def valid(cns, jj, ii, m, n):
+            return 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj + m]) and cns[jj + m][ii + n]
 
-        for i, linha in enumerate(cenas):
+        def vizinhos(jj, ii, cns=cenas):
+            return [(kk, cns[jj + m][ii + n]) for kk, (m, n) in enumerate(CART) if valid(cns, jj, ii, m, n)]
+            # return [(kk, cns[jj + m][ii + n]) for kk, (m, n) in enumerate(CART)
+            #  if 0 <= jj + m < len(cns) and 0 <= ii + n < len(cns[jj+m])and cns[jj + m][ii + n]]
+
+        for j, linha in enumerate(cenas):
             if isinstance(linha, list):
-                for j, centro in enumerate(linha):
-                    for k, sala in enumerate(vizinhos(i, j)):
-                        centro.cenas[k].portal(**{ROSA[k]: sala.cenas[k]})
+                for i, centro in enumerate(linha):
+                    if not isinstance(centro, Sala):
+                        continue
+                    for k, sala in vizinhos(j, i):
+                        if not isinstance(sala, Sala):
+                            continue
+                        centro.cenas[k].portal(**{"N": sala.cenas[k]})
                         indice_oposto = (k + 2) % 4
-                        sala.cenas[indice_oposto].portal(**{ROSA[indice_oposto]: centro.cenas[indice_oposto]})
+                        sala.cenas[indice_oposto].portal(**{"N": centro.cenas[indice_oposto]})
 
 
 class Sala:
     def __init__(self, n=NADA, l=NADA, s=NADA, o=NADA, nome='', **kwargs):
         self.cenas = [Cena(img) if isinstance(img, str) else img for img in [n, l, s, o]]
-        self.norte, self.leste, self.sul, self.oeste = self.cenas
         self.nome = nome
         Sala.c(**kwargs)
         self.p()
 
+    @property
+    def norte(self):
+        return self.cenas[0]
+
+    @property
+    def leste(self):
+        return self.cenas[1]
+
+    @property
+    def sul(self):
+        return self.cenas[2]
+
+    @property
+    def oeste(self):
+        return self.cenas[3]
+
     def p(self):
-        # [cena.sai(saida) for cena, saida in zip(self.cenas, saidasnlso)]
         for esquerda in range(4):
             cena_a_direita = (esquerda + 1) % 4
             self.cenas[esquerda].direita = self.cenas[cena_a_direita]
@@ -222,6 +514,11 @@ class Salao(Sala):
             cena_a_direita = (esquerda + 1) % 4
             self.cenas[esquerda].portal(L=self.cenas[cena_a_direita])
             self.cenas[cena_a_direita].portal(O=self.cenas[esquerda])
+
+    @staticmethod
+    def c(**cenas):
+        for nome, cena in cenas.items():
+            setattr(Salao, nome, Salao(*cena, nome=nome))
 
 
 class Cena:
@@ -242,35 +539,44 @@ class Cena:
     :param vai: Função a ser chamada no lugar da self.vai nativa
     """
 
-    def __init__(self, img=IMAGEM, esquerda=NADA, direita=NADA, meio=NADA, vai=None, nome='', **kwargs):
+    def __init__(self, img=IMAGEM, esquerda=NADA, direita=NADA, meio=NADA,
+                 vai=None, nome='', xy=(0, 0), score=NOSC, **kwargs):
+        width = STYLE["width"]
+        self.scorer = dict(ponto=1, valor="__JOGO__", carta=nome, casa=xy, move=None)
+        self.scorer.update(score)
+        self._auto_score = self.score if score else self._auto_score
+        self.ev = NoEv()
+        self.xy = xy
         self.img = img
         self.nome = nome
         self.dentro = []
         self.esquerda, self.direita, self.meio = esquerda or NADA, direita or NADA, meio or NADA
+        self.N, self.O, self.L = [NADA] * 3
         self.vai = vai or self.vai
         self.elt = html.DIV(style=STYLE)
-        self.elt <= html.IMG(src=self.img, width=300, style=STYLE, title=nome)
+        self.elt <= html.IMG(src=self.img, width=width, style=STYLE, title=nome)
         Cena.c(**kwargs)
 
+        self._cria_divs(width)
+
+    def _cria_divs(self, width):
         self.divesq = divesq = html.DIV(style=STYLE)
         divesq.style.opacity = 0
-        divesq.style.width = 100
+        divesq.style.width = width // 3  # 100
         Droppable(divesq, cursor="not-allowed")
         divesq.onclick = self.vai_esquerda
-
         self.divmeio = divmeio = html.DIV(style=STYLE)
         divmeio.style.opacity = 0
-        divmeio.style.width = 100
+        divmeio.style.width = width // 3  # 100
         divmeio.onclick = self.vai_meio
         Droppable(divmeio, cursor="not-allowed")
-        divmeio.style.left = 100
-
+        divmeio.style.left = width // 3  # 100
         self.divdir = divdir = html.DIV(style=STYLE)
         divdir.style.opacity = 0
-        divdir.style.width = 100
+        divdir.style.width = width // 3  # 100
         divdir.onclick = self.vai_direita
         Droppable(divdir, cursor="not-allowed")
-        divdir.style.left = 200
+        divdir.style.left = width * 2 // 3  # 100
         self.elt <= self.divesq
         self.elt <= self.divmeio
         self.elt <= self.divdir
@@ -292,11 +598,17 @@ class Cena:
     @staticmethod
     def c(**cenas):
         for nome, imagem in cenas.items():
-            setattr(Cena, nome, Cena(imagem, nome=nome))
+            imagem, kwargs = (imagem, {}) if isinstance(imagem, str)\
+                else (imagem["img"], (imagem.pop("img") and 0) or imagem)
+            setattr(Cena, nome, Cena(imagem, nome=nome, **kwargs))
+
+    @staticmethod
+    def q(n=NADA, l=NADA, s=NADA, o=NADA, nome="", **kwargs):
+        return Sala(n, l, s, o, nome=nome, **kwargs)
 
     @staticmethod
     def s(n=NADA, l=NADA, s=NADA, o=NADA, nome="", **kwargs):
-        return Sala(n, l, s, o, nome=nome, **kwargs)
+        return Salao(n, l, s, o, nome=nome, **kwargs)
 
     def vai_direita(self, _=0):
         if self.direita:
@@ -313,14 +625,20 @@ class Cena:
     def sai(self, saida):
         self.meio = saida
 
-    def bota(self, item):
-        self.dentro.append(item)
-        self <= item
+    def bota(self, nome_item):
+        if isinstance(nome_item, str):
+            item_img = html.IMG(Id=nome_item, src=nome_item, width=30, style=EIMGSTY)
+            self.elt <= item_img
+        else:
+            nome_item.entra(self)
+        self.dentro.append(nome_item)
+        # self <= item
 
     def tira(self, item):
         self.dentro.pop(item)
 
-    def vai(self):
+    def vai(self, ev=NoEv()):
+        self.ev = ev
         INVENTARIO.cena = self
         INVENTARIO.desmonta()
         tela = DOC_PYDIV
@@ -328,7 +646,15 @@ class Cena:
         tela <= self.elt
         INVENTARIO.monta()
         INVENTARIO.cena = self
+        self._auto_score(move=(ev.x, ev.y))
         return self
+
+    def _auto_score(self, **kwargs):
+        pass
+
+    def score(self, **kwargs):
+        score = {key: kwargs[key] if key in kwargs else value for key, value in self.scorer.items()}
+        INVENTARIO.score(**score)
 
 
 class Popup:
@@ -373,9 +699,13 @@ class Popup:
 
             def _close(self, *_):
                 self.popup.style = {"visibility": "hidden", "opacity": 0}
+                self.esconde()
 
             def _open(self, *_):
                 self.popup.style = {"visibility": "visible", "opacity": 0.7}
+
+            def esconde(self, *_):
+                ...
 
             def mostra(self, act, tit="", txt=""):
                 if tit or txt:
@@ -392,70 +722,291 @@ class Popup:
         cena.elt <= Popup.POP.popup
         cena.elt <= Popup.POP.go
         act = cena.vai
-        cena.vai = lambda _=0: Popup.POP.mostra(act, tit, txt)
+        cena.vai = lambda *_, **__: Popup.POP.mostra(act, tit, txt)
         return cena
 
 
-@singleton
-class Inventario:
-    def __init__(self, tela=DOC_PYDIV):
-        self.tela = tela
-        self.cena = None
-        self.inventario = {}
-        self.opacity = 0
-        self.style = dict(**STYLE)
-        self.style["min-height"] = "30px"
-        self.elt = html.DIV(Id="__inv__", style=self.style)
-        self.elt.onclick = self.mostra
-        self.limbo = html.DIV(style=self.style)
-        self.limbo.style.left = "4000px"
-        self.mostra()
-        tela <= self.elt
+class Texto(Popup):
+    def __init__(self, cena=NADA, tit="", txt="", **kwargs):
+        super().__init__(None, tit=tit, txt=txt, vai=None, **kwargs)
+        self.elt = Popup.POP.popup
+        cena <= self
 
-    def __le__(self, other):
-        if hasattr(other, 'elt'):
-            self.elt <= other.elt
+    def esconde(self, ev=NoEv):
+        ...
+
+    def vai(self, ev=NoEv):
+        Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
+        Popup.POP.esconde = self.esconde
+        pass
+
+    @staticmethod
+    def texto(tit="", txt="", **kwars):
+        def _texto(class_):
+
+            def decorate(*args, **kwargs):
+
+                def decorate_vai(*_):
+                    class_instance.texto.vai()
+                class_instance = class_(*args, **kwargs)
+                decorated_vai, class_instance.portal.vai = class_instance.portal.vai, decorate_vai
+                class_instance.texto = Texto(class_instance.cena, tit=tit, txt=txt, **kwars)
+                class_instance.texto.esconde = lambda *_: decorated_vai()
+                return class_instance
+
+            return decorate
+        return _texto
+
+
+class Point(list):
+
+    def __init__(self, x, y):
+        super().__init__([x, y])
+        self.x, self.y = x, y
+        self.__iadd__, self.__isub__ = self.__radd__, self.__rsub__
+
+    def __sub__(self, other):
+        return Point(self.x-other.x, self.y-other.y)
+
+    def __add__(self, other):
+        return Point(self.x+other.x, self.y+other.y)
+
+    def __radd__(self, other):
+        print("__radd__(self, {other})".format(other=other))
+        self.x += other.x
+        self.y += other.y
+        return self
+
+    def __rsub__(self, other):
+        self.x -= other.x
+        self.y -= other.y
+        return self
+
+    def px(self):
+        return ["{}px".format(ordin) for ordin in (self.x, self.y)]
+
+    def __iter__(self):
+        return (ordin for ordin in (self.x, self.y))
+
+    def __setitem__(self, key, value):
+        if key:
+            self.y = value
         else:
-            self.elt <= other
-
-    def inicia(self):
-        self.elt.html = ""
-        self.cena = None
-        self.opacity = 0
-        self.mostra()
-
-    def desmonta(self, _=0):
-        self.limbo <= self.elt
-
-    def monta(self, _=0):
-        self.tela <= self.elt
-
-    def mostra(self, _=0):
-        self.opacity = abs(self.opacity - 0.5)
-        self.elt.style.opacity = self.opacity
-
-    def bota(self, nome_item, item="", acao=None):
-        if isinstance(nome_item, str):
-            item_img = html.IMG(Id=nome_item, src=item, width=30, style=ESTYLE)
-            self.elt <= item_img
-        else:
-            nome_item.entra(self)
-            item_img = nome_item.elt
-            item_img.style = ESTYLE
-        Dropper(item_img)
-        if acao:
-            item_img.onclick = lambda *_: acao()
-        else:
-            acao = lambda *_: None
-        self.inventario[nome_item] = acao
-
-    def tira(self, nome_item):
-        item_img = document[nome_item]
-        self.inventario.pop(nome_item, None)
-        self.limbo <= item_img
+            self.x = value
 
 
-INVENTARIO = Inventario()
+class Cursor:
+
+    def __init__(self, alvo, cena=DOC_PYDIV):
+        self.alvo, self.cena, self.ponto = alvo, cena, None
+        outer = self
+
+        class Noop:
+            def __init__(self, outerer=self):
+                self.outer = outerer
+
+            def change(self, ev):
+                pass
+
+            @staticmethod
+            def update_style(styler, new_style, delta=None):
+                cur_style = dict(outer.style)
+                point = Point(outer.alvo.style.left, outer.alvo.style.top)
+                delta = delta if delta else Point(outer.alvo.style.width, outer.alvo.style.minHeight)
+                print("delta.x, delta.y", outer.elt.style.left, outer.elt.style.top, delta.x, delta.y)
+                cur_style.update(cursor=styler, left=point.x, top=point.y, width=delta.x, height=delta.y, **new_style)
+                cur_style["min-height"] = "{}px".format(delta.y)
+                return cur_style
+
+            def next(self, ev):
+                ev.target.style = self.update_style("move", PATTERN.BCROSS)
+                outer.current = outer.move
+
+            def mouse_over(self, ev):
+                ev.target.style.cursor = "default"
+
+            def mouse_down(self, ev):
+                outer.ponto = Point(ev.x, ev.y)
+                outer.cursor = outer.current
+                pass
+
+            def mouse_move(self, ev):
+                pass
+
+            def mouse_up(self, ev):
+                outer.cursor = outer.noop
+                st  = self.outer.elt.style
+                width, height, left, top = st.width, st.minHeight, st.left, st.top
+                self.outer.elt.title = CURSOR_ELEMENT.format(left, top, width, height)
+
+
+        class Move(Noop):
+            def mouse_move(self, ev):
+                delta = Point(int(alvo.style.left.rstrip("px")), int(alvo.style.top.rstrip("px"))) \
+                        + Point(ev.x, ev.y) - outer.ponto
+                alvo.style.left, alvo.style.top = delta
+                outer.elt.left, outer.elt.top = delta
+                outer.ponto = Point(ev.x, ev.y)
+
+            def mouse_over(self, ev):
+                ev.target.style.cursor = "move"
+
+            def next(self, ev):
+                print("next resize")
+                ev.target.style = self.update_style("grab", PATTERN.BOKEH)
+                outer.current = outer.resize
+
+        class Resize(Noop):
+            def mouse_move(self, ev):
+                delta = Point(int(outer.elt.style.width.rstrip("px")), int(outer.elt.style.minHeight.rstrip("px"))) \
+                        + Point(ev.x, ev.y) - outer.ponto
+                outer.elt.style.width, outer.elt.style.minHeight = delta.px()
+                alvo.style.width, alvo.style.minHeight = delta.px()
+                outer.elt.style.height = alvo.style.height = delta.px()[1]
+                # alvo.style = self.update_style("default", {}, delta)
+                # outer.elt.style = self.update_style("default", PATTERN.BOKEH, delta)
+                # print("mouse_move", alvo.style.minHeight, delta)
+                outer.ponto = Point(ev.x, ev.y)
+
+            def mouse_over(self, ev):
+                ev.target.style.cursor = "grab"
+
+            def next(self, ev):
+                print("next noop")
+                ev.target.style = self.update_style("default", PATTERN.STARRY)
+                outer.current = outer.noop
+
+        def next_state(ev):
+            # self.state.append(self.state.pop(0))
+            self.current.next(ev)
+
+        def _mouse_down(ev): return self.cursor.mouse_down(ev)
+
+        def _mouse_up(ev): return self.cursor.mouse_up(ev)
+
+        def _mouse_move(ev): return self.cursor.mouse_move(ev)
+
+        def _mouse_over(ev): return self.cursor.mouse_over(ev)
+
+        def _strip_kind(dm):
+            kinds = "px %".split()
+            kind = [k for k in kinds if isinstance(dm, str) and (k in dm)]
+            # dm = str(dm) if isinstance(dm, int) else dm if isinstance(dm, str) else "0"
+            return int(dm.rstrip(kind[0])) if kind else int(dm) if dm else 0
+
+        self.noop, self.move, self.resize = self.state = [Noop(), Move(), Resize()]
+        self.cursor = self.noop
+        self.current = self.move
+        style = dict(**ISTYLE)
+        dims = [self.alvo.style.top, self.alvo.style.minHeight, self.alvo.style.left, self.alvo.style.width]
+        print("dim left, top = ", dims)
+        dims = [_strip_kind(dm) for dm in dims]
+        top, height, left, width = dims
+        #left, top = left + width//2 - 30, top + height//2 - 30
+        cstyle = CURSOR_STYLE
+        cstyle = cstyle.format(width, height,  height, left, top)
+        print("cstyle = ", cstyle)
+        cstyle = {k.strip(): v for k, v in (tp.split(":") for tp in cstyle.replace("\n", "").split(", ") if tp)}
+        style.update(**cstyle)
+        style.update(**PATTERN.STARRY)
+        self.style = style
+        self.elt = html.DIV(Id="__cursor__", style=style, title="")
+        self.cena <= self.elt
+        self.elt.onclick = next_state
+        self.elt.onmousedown = _mouse_down
+        self.elt.onmouseup = _mouse_up
+        self.elt.onmousemove = _mouse_move
+        self.elt.onmouseover = _mouse_over
+
+
+class Dragger:
+    POINTER = ""
+    ACTION = ""
+
+    def __init__(self, dragger):
+        self._mouse_over = self.pre_mouse_over
+        self._mouse_down = self.pre_mouse_down
+        self._mouse_up = self.pre_mouse_up
+        self._mouse_move = self.pre_mouse_move
+
+        def drag_start(ev): self.drag_start(ev)
+
+        def mouse_over(ev): self._mouse_over(ev)
+
+        def mouse_down(ev): self._mouse_down(ev)
+
+        def mouse_move(ev): self._mouse_move(ev)
+
+        def mouse_up(ev): self._mouse_up(ev)
+
+        self.dragger = dragger
+        dragger.draggable = True
+
+        dragger.ondragstart = drag_start
+        dragger.onmouseover = mouse_over
+        dragger.onmousedown = mouse_down
+        dragger.onmousemove = mouse_move
+        dragger.onmouseup = mouse_up
+
+    def widen(self, dx):
+        self.dragger.w = self.dragger.w + dx
+
+    def highten(self, dy):
+        self.dragger.h = self.dragger.h + dy
+
+    @staticmethod
+    def pre_mouse_over(ev):
+        ev.target.style.cursor = "grab"
+
+    @staticmethod
+    def mouse_over(ev):
+        obj = ev.target
+        dx, dy, x, y = obj.w, obj.h, ev.x-obj.offsetLeft, ev.y-obj.offsetTop
+        quadrante = dy//y*3 + dx//x
+        ev.target.style.cursor = Dragger.POINTER[quadrante]
+
+    def drag_start(self, ev):
+        ev.data['text'] = ev.target.id
+        ev.data.effectAllowed = 'move'
+        ev.preventDefault()
+        return False
+
+    def mouse_down(self, ev):
+        ev.target.style.cursor = "move"
+        self._mouse_move = self.pre_mouse_move
+
+    def pre_mouse_down(self, ev):
+        ev.target.style.cursor = "move"
+        self._mouse_move = self.pre_mouse_move
+
+        pass
+
+    def pre_mouse_up(self, ev):
+        self._mouse_over = self.mouse_over
+        self._mouse_move = self.no_mouse_move
+        self._mouse_down = self.mouse_down
+        pass
+
+    def _mouse_up_(self, ev):
+        self._mouse_over = self.mouse_over
+        self._mouse_down = self.mouse_down
+        self._mouse_up = self.mouse_up
+
+    def mouse_up(self, ev):
+        self._mouse_over = self.pre_mouse_over
+        self._mouse_down = self.pre_mouse_down
+        self._mouse_up = self.pre_mouse_up
+        pass
+
+    def no_mouse_move(self, ev):
+        pass
+
+    def pre_mouse_move(self, ev):
+        obj = ev.target
+        dx, dy, x, y = obj.w, obj.h, ev.x-obj.offsetLeft, ev.y-obj.offsetTop
+        self.dragger.x = ev.x-x
+        self.dragger.y = ev.y-y
+        pass
 
 
 class Dropper:
@@ -502,10 +1053,10 @@ class Droppable:
 
 
 class Folha:
-    def __init__(self, texto, html, tela, left):
+    def __init__(self, texto, ht_ml, tela, left):
         style = {'position': "absolute", 'width': 80, 'height': 80, 'left': left, 'top': 10, 'background': "yellow"}
         fid = "folha%d" % left
-        self.folha = html.DIV(texto, Id=fid, style=style, draggable=True)
+        self.folha = ht_ml.DIV(texto, Id=fid, style=style, draggable=True)
         tela <= self.folha
         self.folha.ondragstart = self.drag_start
         self.folha.onmouseover = self.mouse_over
@@ -519,9 +1070,9 @@ class Folha:
 
 
 class Suporte:
-    def __init__(self, bloco, html, tela, left, certa):
+    def __init__(self, bloco, ht_ml, tela, left, certa):
         style = {'position': "absolute", 'width': 80, 'height': 80, 'left': left, 'top': 100, 'background': "grey"}
-        self.folha = html.DIV("............ ............", style=style)
+        self.folha = ht_ml.DIV("............ ............", style=style)
         self.left = left
         self.certa = certa
         tela <= self.folha
@@ -568,18 +1119,18 @@ class Bloco:
         for pos, tx in enumerate(texto):
             Folha(tx, html, tela, pos * 100 + 10)
 
-    def começa_de_novo(self):
+    def inicia_de_novo(self):
         pass
 
-    def conta_peça(self, valor_peça):
-        self.pecas_colocadas += valor_peça
+    def conta_pecas(self, valor_peca):
+        self.pecas_colocadas += valor_peca
         if len(self.pecas_colocadas) == 4:
             if all(self.pecas_colocadas):
                 input("O texto está certo.")
             else:
                 vai = input("Tentar de novo?")
                 if vai == "s":
-                    self.começa_de_novo()
+                    self.inicia_de_novo()
 
     def nao_monta(self):
         pass
@@ -597,19 +1148,24 @@ class Jogo:
         self.salao = self.s = Salao
         self.algo = self.a = Elemento
         self.texto = self.t = Popup
+        self.nota = self.n = Texto
         self.labirinto = self.l = Labirinto
         self.inventario = self.i = INVENTARIO
         self.portal = self.p = Portal
         self.dropper = self.d = Dropper
         self.droppable = self.r = Droppable
+        self.musica = self.m = Musica
         pass
 
+
 JOGO = Jogo()
+
 
 def main():
     # Bloco()
     # CenaPrincipal()
     return Bloco()
+
 
 if "__main__" in __name__:
     main()
@@ -703,5 +1259,6 @@ h1 {
 def __setup__():
     document.head <= html.STYLE(CSS, type="text/css", media="screen")
     Popup(Cena())
+
 
 __setup__()
