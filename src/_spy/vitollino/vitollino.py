@@ -106,6 +106,13 @@ class PATTERN:
 # INVENTARIO = None
 
 
+def parametrized(dec):
+    def layer(*args, **kwargs):
+        def repl(f):
+            return dec(f, *args, **kwargs)
+        return repl
+    return layer
+
 def singleton(class_):
 
     def getinstance(*args, **kwargs):
@@ -734,19 +741,21 @@ class Texto(Popup):
         pass
 
     @staticmethod
-    def texto(class_, tit="", txt="", **kwars):
+    def texto(tit="", txt="", **kwars):
+        def _texto(class_):
 
-        def decorate(*args, **kwargs):
+            def decorate(*args, **kwargs):
 
-            def decorate_vai(*_):
-                class_instance.texto.vai()
-            class_instance = class_(*args, **kwargs)
-            decorated_vai, class_instance.portal.vai = class_instance.portal.vai, decorate_vai
-            class_instance.texto = Texto(class_instance.cena, tit=tit, txt=txt, **kwars)
-            class_instance.texto.esconde = lambda *_: decorated_vai()
-            return class_instance
+                def decorate_vai(*_):
+                    class_instance.texto.vai()
+                class_instance = class_(*args, **kwargs)
+                decorated_vai, class_instance.portal.vai = class_instance.portal.vai, decorate_vai
+                class_instance.texto = Texto(class_instance.cena, tit=tit, txt=txt, **kwars)
+                class_instance.texto.esconde = lambda *_: decorated_vai()
+                return class_instance
 
-        return decorate
+            return decorate
+        return _texto
 
 
 class Point(list):

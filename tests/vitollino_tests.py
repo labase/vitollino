@@ -125,7 +125,29 @@ class CenaTest(unittest.TestCase):
         """Adiciona notificação ao portal"""
         self.meio.elt = MagicMock(name="MEIONOTI")
         self.meio.elt.__le__ = MagicMock(name="NOTI")
-        p = j.n.texto(self.meio.portal, "oi", "ok")(O=self.app)
+        p = j.n.texto("oi", "ok")(self.meio.portal)(O=self.app)
+        assert p.texto.tit == "oi"
+        self.meio.elt.__le__.assert_called_with(p.texto.elt)
+        texto_vai, p.texto.vai = p.texto.vai,  MagicMock(name="TEXTONOTI")
+        p.texto.vai.side_effect = texto_vai
+        self.app.vai = MagicMock(name="DESTNOTI")
+        p.vai()
+        p.texto.vai.assert_called()
+        self.app.vai.assert_not_called()
+        j.t.POP._close(None)
+        self.app.vai.assert_called()
+        assert "cursor" in p.style, "O estilo do portal é {p.style}"
+        assert p.style["cursor"] == "w-resize", "O estilo do cursor é p.style['cursor'] {}".format(p.style["cursor"])
+        assert p.style["left"] == 0, "O estilo do cursor é p.style['cursor'] {}".format(p.style["left"])
+
+    def test_notifica_portal_decorado(self):
+        """Adiciona decorador de notificação ao portal"""
+        self.meio.elt = MagicMock(name="MEIONOTI")
+        self.meio.elt.__le__ = MagicMock(name="NOTI")
+        @j.n.texto("oi", "ok")
+        def decorado(origem, **k):
+            return origem.portal(**k)
+        p = decorado(self.meio, O=self.app)
         assert p.texto.tit == "oi"
         self.meio.elt.__le__.assert_called_with(p.texto.elt)
         texto_vai, p.texto.vai = p.texto.vai,  MagicMock(name="TEXTONOTI")
