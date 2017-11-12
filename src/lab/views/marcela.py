@@ -46,7 +46,7 @@ class Config:
 
         ::
 
-            CONFIGURA = dict(origem=["vestiário#vestiário#Asseio#Por o avental", True, dict(left=429))
+            CONFIGURA = dict(origem=["vestiário#armário#Asseio#Por o avental", True, dict(left=429))
 
         ===============================  ==============  =========
         Origem, Destino, Título e Texto  Com Popup       Hot Spot
@@ -87,23 +87,25 @@ class Config:
         vestiário=\
         ["vestiário#abriu_o_armário#Asseio#Você deve por o avental", True,dict(left=429, top=112, width=109, height=300)],
         abriu_o_armário=\
-        ["abriu_o_armário#o_asseio#Asseio#Você deve lavar as mão", True,dict(left=429, top=112, width=109, height=300)],
+        ["abriu_o_armário#o_asseio#Asseio#Você deve lavar as mão", True,dict(left=437, top=127, width=109, height=300)],
         o_asseio=\
         ["o_asseio#acionou_a_pia#o_asseio#acionou_a_pia", True,dict(left=354, top=653, width=60, height=60)],
         acionou_a_pia=\
-        ["acionou_a_pia#molhando_as_mãos#o_asseio#acionou_a_pia", True,dict(left=354, top=653, width=60, height=60)],
+        ["acionou_a_pia#molhando_as_mãos#o_asseio#acionou_a_pia", True,dict(left=313, top=390, width=171, height=96)],
         molhando_as_mãos=\
-        ["molhando_as_mãos#usando_sabão#o_asseio#acionou_a_pia", True,dict(left=429, top=112, width=109, height=300)],
+        ["molhando_as_mãos#usando_sabão#o_asseio#acionou_a_pia", True,dict(left=316, top=276, width=54, height=95)],
         usando_sabão=\
-        ["usando_sabão#as_bactérias#o_asseio#acionou_a_pia", True,dict(left=429, top=112, width=109, height=300)],
+        ["usando_sabão#as_bactérias#o_asseio#acionou_a_pia", True,dict(left=310, top=403, width=188, height=121)],
         as_bactérias=\
-        ["as_bactérias#enxaguando#o_asseio#acionou_a_pia", True,dict(left=429, top=112, width=109, height=300)],
+        ["as_bactérias#enxaguando#o_asseio#acionou_a_pia", True,dict(left=349, top=666, width=62, height=79)],
         enxaguando=\
-        ["enxaguando#secando#o_asseio#acionou_a_pia", True,dict(left=429, top=112, width=109, height=300)],
+        ["enxaguando#secando#o_asseio#acionou_a_pia", True,dict(left=381, top=252, width=81, height=121)],
         secando=\
-        ["secando#descontaminando#o_asseio#acionou_a_pia", True,dict(left=429, top=112, width=109, height=300)],
+        ["secando#descontaminando#o_asseio#acionou_a_pia", True,dict(left=449, top=256, width=49, height=109)],
         descontaminando=\
-        ["descontaminando#saindo#o_asseio#acionou_a_pia", True,dict(left=429, top=112, width=109, height=300)],
+        ["descontaminando#saindo#o_asseio#acionou_a_pia", True,dict(left=610, top=116, width=181, height=676)],
+        saindo=\
+        ["descontaminando#saindo#o_asseio#acionou_a_pia", True,dict(left=610, top=116, width=181, height=676)],
     )
 
 
@@ -152,7 +154,7 @@ class JogoMarcela:
         self.quadros = momentos
         telas = {nome: ACTIV.format(quadro, momento) for nome, (quadro, momento) in zip(legendas, momentos)}
         print({te: ur[-18:] for te, ur in telas.items()})
-        self.cenario = self._cria_cenas(telas)
+        self._cria_cenas(telas)
         self._inicia_jogo()
 
     def configura_momentos(self, cena):
@@ -167,7 +169,7 @@ class JogoMarcela:
 
             .. code-block:: python
 
-                um_portal = configura_portal_com_texto("vetiário", "armário", hot_spot=dict(left=10, top=90)):
+                um_portal = configura_portal_com_texto("vestiário", "armário", hot_spot=dict(left=10, top=90)):
 
 
         :param cena: Nome do momento a ser configurado, tem que ser chave de **CONFIGURA**.
@@ -176,6 +178,7 @@ class JogoMarcela:
         origem_destino_titulo_texto, com_texto, hot = Config.CONFIGURA[cena]
         origem, destino, titulo, texto = origem_destino_titulo_texto.split("#")
         origem = getattr(JOGO.c, origem)
+        debug = False
 
         @JOGO.n.texto(titulo, texto)
         def configura_portal_com_texto(origem_, destino_, hot_spot=hot):
@@ -194,7 +197,7 @@ class JogoMarcela:
             :param hot_spot: Dicionário que vai configurar o hot spot clicável
             :return: Portal criado
             """
-            return origem_.portal(L=destino_, style=hot_spot)
+            return origem_.portal(L=destino_, style=hot_spot, debug_=debug)
 
         def configura_portal_sem_texto(origem_, destino_, hot_spot=hot):
             """
@@ -202,7 +205,7 @@ class JogoMarcela:
 
             .. code-block:: python
 
-                um_portal = configura_portal_sem_texto("vetiário", "armário", hot_spot=dict(left=10, top=90)):
+                um_portal = configura_portal_sem_texto("vestiário", "armário", hot_spot=dict(left=10, top=90)):
 
             :param origem_: A cena que vai conter o portal.
             :param destino_: A cena que vai surgir da ação do portal.
@@ -214,12 +217,39 @@ class JogoMarcela:
         previo_destino = PreviaDoMomento(self, destino)
 
         if com_texto:
-            configura_portal_com_texto(origem, previo_destino)
+            portal_decorado = configura_portal_com_texto(origem, previo_destino)
         else:
-            configura_portal_sem_texto(origem, previo_destino)
+            portal_decorado = configura_portal_sem_texto(origem, previo_destino)
 
+        if debug:
+            self._decorador_do_vai_do_texto(portal_decorado)
 
         return previo_destino
+
+    @staticmethod
+    def _decorador_do_vai_do_texto(port):
+        """
+        Decorador do texto para refinamento, publica as dimensões do cursor no popup de texto.
+
+        :param port: portal que vai ser decorado
+        :return: Nenhum
+        """
+        formato_do_texto_no_popup = "dict(left={left}, top={top}, width={width}, height={height})"
+        metodo_vai_original = port.texto.vai
+
+        def decorador_do_metodo_vai_do_texto(*a):
+            """
+            Intercepta o método vai original, adicionando as dimensões no texto do popup.
+
+            :param a: Argumentos originais do vai
+            :return: Nenhum
+            """
+            port.texto.txt = formato_do_texto_no_popup.format(
+                **{k: v[:-2] for k, v in dict(left=port.elt.style.left, top=port.elt.style.top,
+                                              width=port.elt.style.width, height=port.elt.style.minHeight).items()})
+            metodo_vai_original(*a)
+
+        port.texto.vai = lambda *a: decorador_do_metodo_vai_do_texto(*a)
 
     def _inicia_jogo(self):
         """
@@ -240,7 +270,6 @@ class JogoMarcela:
         :return: cenário, uma lista de quadros criados
         """
         JOGO.c.c(**cenas)
-        return []  # [self._cria_cena(quadro+1, self.quadros[quadro]) for quadro in range(0,3)]
 
 
 def main(*_):
