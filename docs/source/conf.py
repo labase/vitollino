@@ -20,7 +20,21 @@ import os
 sys.path.insert(0, os.path.abspath('../../src/'))
 sys.path.insert(0, os.path.abspath('../../tests/'))
 from _spy import __version__
+import cloud_sptheme as csp
 
+# ... some contents omitted ...
+
+# set the html theme
+html_theme = "cloud"
+    # NOTE: there is also a red-colored version named "redcloud"
+
+# ... some contents omitted ...
+
+# set the theme path to point to cloud's theme data
+html_theme_path = [csp.get_theme_dir()]
+
+# [optional] set some of the options listed above...
+html_theme_options = { "roottarget": "index" }
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -94,7 +108,8 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinx_rtd_theme"
+#html_theme = "sphinx_rtd_theme"
+html_theme = "cloud"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
