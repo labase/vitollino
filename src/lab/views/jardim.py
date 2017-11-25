@@ -1,5 +1,3 @@
-#tarzan/main.py
-#vader/main.py
 #! /usr/bin/env python
 # -*- coding: UTF8 -*-
 # Este arquivo é parte do programa Vittolino
@@ -19,25 +17,33 @@
 # Você deve ter recebido uma cópia da Licença Pública Geral GNU
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
 """
-Gerador de labirintos e jogos tipo *novel*
+Gerador de labirintos e jogos tipo *novel*.
 
 `Vitollino em Github <https://github.com/carlotolla/vitollino>`_
+
+ROTEIRO DO GAME JARDIM RADICAL
+
+Sequência de forma lógica para o funcionamento do jogo, ou seja, “costurar” as histórias das cenas.
 
 .. author Carlo Oliveira
 """
 from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena
 from _spy.vitollino.vitollino import JOGO
+
 Cena._cria_divs = lambda *_: None
 STYLE['width'] = 800
 STYLE['min-height'] = "800px"
 INVENTARIO.elt.style.width = 800
-ACTIV = "https://activufrj.nce.ufrj.br/file/GamesInteligentesII/Cena_1_Quadro_{}_Momento_{}.jpg"
-QUADROS = [list(range(1,3)),list(range(1,9)),[1]]
-MOMENTOS = [(quadro+1, momento)
-        for quadro, quadros in enumerate(QUADROS) for momento in quadros]
+ACTIV = "https://activufrj.nce.ufrj.br/studio/labase/{}.jpg?disp=inline&size=G"
+QUADROS = [list(range(1, 3)), list(range(1, 9)), [1]]
 
-LEGENDAS = "vestiário abriu_o_armário o_asseio acionou_a_pia molhando_as_mãos usando_sabão" \
-           " as_bactérias enxaguando secando descontaminando saindo".split()
+LOCAIS = ['abrico', 'academia', 'aleiapalmeiras', 'bambus', 'bambuzal', 'bromeliario', 'cascata', 'clarisse', 'comoro',
+          'entrada', 'gruta', 'guarita', 'herborizada', 'insetivoras', 'jambeiros', 'japones', 'lago', 'macaco',
+          'mexicano', 'mirante', 'narciso', 'orquidario', 'ossanha', 'palmeiras', 'pesquisa', 'portal', 'portao',
+          'relogio', 'serpabrandao', 'tartarugas', 'tetis', 'tomjobim', 'vitoriaregia', 'xochipili']
+MOMENTOS = lz = {l: ["#".join([l, z, l, z]), True, dict(left=0, top=0, width=100, height=100)]
+                 for l, z in zip(LOCAIS, LOCAIS[1:])}
+
 
 class Config:
     """
@@ -81,32 +87,54 @@ class Config:
 
 
     """
-    CONFIGURA = dict(
-        origem=\
-        ["vestiário#vestiário#Asseio#Você deve por o avental", True,dict(left=429, top=112, width=109, height=300)],
-        vestiário=\
-        ["vestiário#abriu_o_armário#Asseio#Você deve por o avental", True,dict(left=429, top=112, width=109, height=300)],
-        abriu_o_armário=\
-        ["abriu_o_armário#o_asseio#Asseio#Você deve lavar as mão", True,dict(left=437, top=127, width=109, height=300)],
-        o_asseio=\
-        ["o_asseio#acionou_a_pia#o_asseio#acionou_a_pia", True,dict(left=354, top=653, width=60, height=60)],
-        acionou_a_pia=\
-        ["acionou_a_pia#molhando_as_mãos#o_asseio#acionou_a_pia", True,dict(left=313, top=390, width=171, height=96)],
-        molhando_as_mãos=\
-        ["molhando_as_mãos#usando_sabão#o_asseio#acionou_a_pia", True,dict(left=316, top=276, width=54, height=95)],
-        usando_sabão=\
-        ["usando_sabão#as_bactérias#o_asseio#acionou_a_pia", True,dict(left=310, top=403, width=188, height=121)],
-        as_bactérias=\
-        ["as_bactérias#enxaguando#o_asseio#acionou_a_pia", True,dict(left=349, top=666, width=62, height=79)],
-        enxaguando=\
-        ["enxaguando#secando#o_asseio#acionou_a_pia", True,dict(left=381, top=252, width=81, height=121)],
-        secando=\
-        ["secando#descontaminando#o_asseio#acionou_a_pia", True,dict(left=449, top=256, width=49, height=109)],
-        descontaminando=\
-        ["descontaminando#saindo#o_asseio#acionou_a_pia", True,dict(left=610, top=116, width=181, height=676)],
-        saindo=\
-        ["descontaminando#saindo#o_asseio#acionou_a_pia", True,dict(left=610, top=116, width=181, height=676)],
-    )
+    CONFIGURA = {
+        'origem': ['abrico#academia#abrico#academia', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'abrico': ['abrico#academia#abrico#academia', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'academia': ['academia#aleiapalmeiras#academia#aleiapalmeiras', True,
+                     {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'aleiapalmeiras': ['aleiapalmeiras#bambus#aleiapalmeiras#bambus', True,
+                           {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'bambus': ['bambus#bambuzal#bambus#bambuzal', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'bambuzal': ['bambuzal#bromeliario#bambuzal#bromeliario', True,
+                     {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'bromeliario': ['bromeliario#cascata#bromeliario#cascata', True,
+                        {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'cascata': ['cascata#clarisse#cascata#clarisse', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'clarisse': ['clarisse#comoro#clarisse#comoro', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'comoro': ['comoro#entrada#comoro#entrada', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'entrada': ['entrada#gruta#entrada#gruta', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'gruta': ['gruta#guarita#gruta#guarita', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'guarita': ['guarita#herborizada#guarita#herborizada', True,
+                    {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'herborizada': ['herborizada#insetivoras#herborizada#insetivoras', True,
+                        {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'insetivoras': ['insetivoras#jambeiros#insetivoras#jambeiros', True,
+                        {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'jambeiros': ['jambeiros#japones#jambeiros#japones', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'japones': ['japones#lago#japones#lago', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'lago': ['lago#macaco#lago#macaco', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'macaco': ['macaco#mexicano#macaco#mexicano', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'mexicano': ['mexicano#mirante#mexicano#mirante', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'mirante': ['mirante#narciso#mirante#narciso', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'narciso': ['narciso#orquidario#narciso#orquidario', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'orquidario': ['orquidario#ossanha#orquidario#ossanha', True,
+                       {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'ossanha': ['ossanha#palmeiras#ossanha#palmeiras', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'palmeiras': ['palmeiras#pesquisa#palmeiras#pesquisa', True,
+                      {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'pesquisa': ['pesquisa#portal#pesquisa#portal', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'portal': ['portal#portao#portal#portao', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'portao': ['portao#relogio#portao#relogio', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'relogio': ['relogio#serpabrandao#relogio#serpabrandao', True,
+                    {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'serpabrandao': ['serpabrandao#tartarugas#serpabrandao#tartarugas', True,
+                         {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'tartarugas': ['tartarugas#tetis#tartarugas#tetis', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'tetis': ['tetis#tomjobim#tetis#tomjobim', True, {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'tomjobim': ['tomjobim#vitoriaregia#tomjobim#vitoriaregia', True,
+                     {'left': 0, 'top': 0, 'width': 100, 'height': 100}],
+        'vitoriaregia': ['vitoriaregia#xochipili#vitoriaregia#xochipili', True,
+                         {'left': 0, 'top': 0, 'width': 100, 'height': 100}]}
 
 
 class PreviaDoMomento:
@@ -142,17 +170,16 @@ class PreviaDoMomento:
         self._destino.vai(*_, **__)
 
 
-class JogoMarcela:
+class JogoJardim:
     """
-    Constroi o jogo completo da Marcela.
+    Constroi o jogo completo do Jardim.
 
     :param legendas: lista contendo nomes das cenas *[<nome da cena>, ...]*
-    :param momentos: lista de tuplas indicando o quadro e o momento  *[(<q0>, <m0>), ... ]*
     """
 
-    def __init__(self, legendas=LEGENDAS, momentos=MOMENTOS):
-        self.quadros = momentos
-        telas = {nome: ACTIV.format(quadro, momento) for nome, (quadro, momento) in zip(legendas, momentos)}
+    def __init__(self, legendas=LOCAIS):
+        self.quadros = legendas
+        telas = {nome: ACTIV.format(nome) for nome in legendas}
         print({te: ur[-18:] for te, ur in telas.items()})
         self._cria_cenas(telas)
         self._inicia_jogo()
@@ -279,4 +306,4 @@ def main(*_):
     :param _: Parametros recebidos do HTML
     :return: Instância do Jogo da Marcela
     """
-    return JogoMarcela()
+    return JogoJardim()

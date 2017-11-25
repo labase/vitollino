@@ -27,6 +27,9 @@ Desenvolvimento
     :maxdepth: 1
 
     intro.rst
+    release1_1_0.rst
+    release1_0_0.rst
+    release0_0_0.rst
 
 Indices e Tabelas
 =================
