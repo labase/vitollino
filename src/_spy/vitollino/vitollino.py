@@ -27,7 +27,7 @@ from browser import ajax
 
 CURSOR_STYLE = 'width: {}px, height: {}px, min-height: {}px, border-radius: 30px, left:{}px, top: {}px, position: absolute'
 CURSOR_ELEMENT = 'left={}, top={}, width={}, height={}'
-
+ABOXED = 9398
 NOSCORE = dict(ponto=0, valor=0, carta=None, casa=None, move=None)
 NOSC = {}
 SZ = dict(W=300, H=300)
@@ -664,9 +664,10 @@ class Popup:
         self.cena, self.tit, self.txt, = cena, tit, txt
         self.kwargs = kwargs
         self._vai = vai
+        self.optar = {}
         Popup.__setup__()
         if isinstance(cena, Cena):
-            self.d(cena, tit, txt)
+            self.d(cena, tit, txt, **kwargs)
 
     def vai(self):
         return self._vai() if self._vai else None
@@ -683,8 +684,9 @@ class Popup:
         class Pop:
             def __init__(self, tela=DOC_PYDIV):
                 self.tela = tela
+                self.optou = ""
                 self.popup = html.DIV(Id="__popup__", Class="overlay")
-                div = html.DIV(Class="popup")
+                self.div = div = html.DIV(Class="popup")
                 self.tit = html.H2()
                 a = html.A("&times;", Class="close", href="#")
                 self.go = html.A(Id="txt_button", Class="button", href="#__popup__")
@@ -707,9 +709,27 @@ class Popup:
             def esconde(self, *_):
                 ...
 
-            def mostra(self, act, tit="", txt=""):
+            def monta_optar(self, **kwargs):
+                def opcao(letra):
+                    self.optou = letra
+
+                def opta(letra, texto):
+                    div = html.DIV(Class="content")
+                    optou = html.A(chr(ABOXED+ord(letra)-ord("A")), Class="option", href="#")
+                    optou.onclick = lambda *_: opcao(letra) or self._close()
+                    texto_opcao = html.SPAN(texto)
+                    div <= optou
+                    div <= texto_opcao
+                    return  div
+
+                optar = [[optou, texto] for optou, texto in kwargs.items() if optou in "ABCDEFGHIJK" ]
+                for op in optar:
+                    self.div <= opta(*op)
+
+            def mostra(self, act, tit="", txt="", **kwargs):
                 if tit or txt:
                     self.tit.text, self.alt.text = tit, txt
+                self.monta_optar(**kwargs)
                 # self.popup.style = {"visibility": "visible", "opacity": 0.7}
                 self._open()
                 act()
@@ -734,6 +754,11 @@ class Texto(Popup):
 
     def esconde(self, ev=NoEv):
         ...
+
+    def mostra(self,tit="", txt="", **kwargs):
+        Popup.POP.mostra(lambda *_: None, tit=tit, txt=txt, **kwargs)
+        Popup.POP.esconde = self.esconde
+        pass
 
     def vai(self, ev=NoEv):
         Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
@@ -1246,7 +1271,17 @@ h1 {
   text-decoration: none;
   color: #333;
 }
+.popup .option {
+  transition: all 200ms;
+  font-size: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+}
 .popup .close:hover {
+  color: #06D85F;
+}
+.popup .option:hover {
   color: #06D85F;
 }
 .popup .content {

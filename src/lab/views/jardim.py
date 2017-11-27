@@ -284,7 +284,11 @@ class JogoJardim:
 
         :return: Nenhum
         """
+        t = JOGO.n(JOGO.c.academia,"oi", "aisawagv iv svjfoj w")
+        print("_inicia_jogo", t)
         self.configura_momentos("origem").vai()
+        t.esconde = lambda *_: print("aisawagv iv svjfoj w", t.POP.optou)
+        t.mostra("oi", "aisawagv iv svjfoj w", A="eu", B="tu", C="ele")
 
     @staticmethod
     def _cria_cenas(cenas):
