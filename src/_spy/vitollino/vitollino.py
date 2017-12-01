@@ -25,7 +25,8 @@ from browser import document, html
 from browser import window as win
 from browser import ajax
 
-CURSOR_STYLE = 'width: {}px, height: {}px, min-height: {}px, border-radius: 30px, left:{}px, top: {}px, position: absolute'
+CURSOR_STYLE = 'width: {}px, height: {}px, min-height: {}px, border-radius: 30px,' \
+               ' left:{}px, top: {}px, position: absolute'
 CURSOR_ELEMENT = 'left={}, top={}, width={}, height={}'
 ABOXED = 9398
 NOSCORE = dict(ponto=0, valor=0, carta=None, casa=None, move=None)
@@ -98,11 +99,13 @@ class PATTERN:
     background-size: 80px 80px;
     background-position: 0 0, 40px 40px;""".replace("\n", "").split(";") if tp)}
     RADGRAD = ", ".join(["rgba({a},{a},{a},{b}) {c}%".format(
-        a=200 if c % 2 else 20, b=0.6, c=c*10) for c in range(0, 11)])
+        a=200 if c % 2 else 20, b=0.6, c=c * 10) for c in range(0, 11)])
 
     BOKEH = {k.strip(): v for k, v in (tp.split(": ") for tp in """opacity: 0.5;
     background-size: 60px 60px, 60px 60px, 30px 30px, 30px 30px, 100% 100%;background: 
     radial-gradient({}) 0 0;""".replace("\n", "").format(RADGRAD).split(";") if tp)}
+
+
 # INVENTARIO = None
 
 
@@ -110,24 +113,40 @@ def parametrized(dec):
     def layer(*args, **kwargs):
         def repl(f):
             return dec(f, *args, **kwargs)
+
         return repl
+
     return layer
 
+
 def singleton(class_):
-
     def getinstance(*args, **kwargs):
-
-        if not getattr(class_,"__INSTANCE__", None):
+        if not getattr(class_, "__INSTANCE__", None):
             class_.__INSTANCE__ = class_(*args, **kwargs)
         return class_.__INSTANCE__
 
     return getinstance
 
 
+""" Representa um evento vazio.
+
+    >>> ev = NoEv()
+    >>> print(ev.x, ev.y)
+    -100 -101
+"""
 @singleton
 class NoEv:
+    """ Representa um evento vazio.
+
+    .. doctests::
+
+        >>> ev = NoEv()
+        >>> print(ev.x, ev.y)
+        -100 -101
+    """
     x = -100
     y = -100
+
     def __init__(self):
         self.x = -100
         self.y = -100
@@ -175,6 +194,18 @@ class Musica(object):
 
 @singleton
 class Inventario:
+    """
+    Os objetos que estão de posse do jogador.
+
+    .. doctest::
+
+        >>> inv = Inventario()
+        >>> inv.bota("uma_coisa")
+        >>> "uma_coisa" in inv.dentro
+        True
+
+    :param tela: Div do HTML onde o inventário será anexado
+    """
     GID = "00000000000000000000"
 
     def __init__(self, tela=DOC_PYDIV):
@@ -215,6 +246,20 @@ class Inventario:
         self.elt.style.opacity = self.opacity
 
     def bota(self, nome_item, item="", acao=None):
+        """
+        Os objetos que estão de posse do jogador.
+
+        .. doctest::
+
+            >>> inv = Inventario()
+            >>> inv.bota("uma_coisa")
+            >>> "uma_coisa" in inv.dentro
+            True
+
+        :param nome_item: Div do HTML onde o inventário será anexado
+        :param item: Div do HTML onde o inventário será anexado
+        :param acao: Div do HTML onde o inventário será anexado
+        """
         if isinstance(nome_item, str):
             item_img = html.IMG(Id=nome_item, src=item, width=30, style=EIMGSTY)
             self.elt <= item_img
@@ -316,7 +361,8 @@ class Elemento:
         styler.update(style)
         self.elt.style = styler
         self.cena = cena
-        self.scorer.update(valor=cena.nome, move=self.xy, casa=(styler["left"], styler["top"] if "top" in styler else 0))
+        self.scorer.update(valor=cena.nome, move=self.xy,
+                           casa=(styler["left"], styler["top"] if "top" in styler else 0))
         self._auto_score(**self.scorer)
         cena <= self
 
@@ -371,6 +417,7 @@ class Portal:
 
             def _onclick(self, *args):
                 return self._vai(*args)
+
             def __call__(self, *args, **kwargs):
                 return self._vai(*args, **kwargs)
 
@@ -395,6 +442,7 @@ class Portal:
             @property
             def img(self):
                 return self.destino.img
+
             """
             @property
             def x(self, value):
@@ -415,6 +463,7 @@ class Portal:
 
             def __eq__(self, other):
                 return other == self.destino
+
         _ = style.update(**{"min-height": "%dpx" % style["height"]}) if "height" in style else None
         sty = Portal.PORTAIS.get(portal, ZSTYLE)
         self.style.update(sty)
@@ -424,11 +473,11 @@ class Portal:
         return ptc
 
     def p(self, **kwargs):
-        style=dict(NS)
-        styl=kwargs.pop("style") if "style" in kwargs else {}
+        style = dict(NS)
+        styl = kwargs.pop("style") if "style" in kwargs else {}
         style.update(**styl)
         self.portal = [self.__setup__(cena, portal, style=style) for portal, cena in kwargs.items()
-         if (portal in "NSLO" and cena != NADA)]
+                       if (portal in "NSLO" and cena != NADA)]
         self.portal = self.portal[0] if self.portal else SalaCenaNula()
         return self.cena
 
@@ -598,7 +647,7 @@ class Cena:
     @staticmethod
     def c(**cenas):
         for nome, imagem in cenas.items():
-            imagem, kwargs = (imagem, {}) if isinstance(imagem, str)\
+            imagem, kwargs = (imagem, {}) if isinstance(imagem, str) \
                 else (imagem["img"], (imagem.pop("img") and 0) or imagem)
             setattr(Cena, nome, Cena(imagem, nome=nome, **kwargs))
 
@@ -667,7 +716,7 @@ class Popup:
         self.optar = {}
         Popup.__setup__()
         if isinstance(cena, Cena):
-            self.d(cena, tit, txt, **kwargs)
+            self.d(cena, tit, txt)
 
     def vai(self):
         return self._vai() if self._vai else None
@@ -715,14 +764,14 @@ class Popup:
 
                 def opta(letra, texto):
                     div = html.DIV(Class="content")
-                    optou = html.A(chr(ABOXED+ord(letra)-ord("A")), Class="option", href="#")
+                    optou = html.A(chr(ABOXED + ord(letra) - ord("A")), Class="option", href="#")
                     optou.onclick = lambda *_: opcao(letra) or self._close()
                     texto_opcao = html.SPAN(texto)
                     div <= optou
                     div <= texto_opcao
-                    return  div
+                    return div
 
-                optar = [[optou, texto] for optou, texto in kwargs.items() if optou in "ABCDEFGHIJK" ]
+                optar = [[optou, texto] for optou, texto in kwargs.items() if optou in "ABCDEFGHIJK"]
                 for op in optar:
                     self.div <= opta(*op)
 
@@ -755,7 +804,7 @@ class Texto(Popup):
     def esconde(self, ev=NoEv):
         ...
 
-    def mostra(self,tit="", txt="", **kwargs):
+    def mostra(self, tit="", txt="", **kwargs):
         Popup.POP.mostra(lambda *_: None, tit=tit, txt=txt, **kwargs)
         Popup.POP.esconde = self.esconde
         pass
@@ -768,11 +817,10 @@ class Texto(Popup):
     @staticmethod
     def texto(tit="", txt="", **kwars):
         def _texto(class_):
-
             def decorate(*args, **kwargs):
-
                 def decorate_vai(*_):
                     class_instance.texto.vai()
+
                 class_instance = class_(*args, **kwargs)
                 decorated_vai, class_instance.portal.vai = class_instance.portal.vai, decorate_vai
                 class_instance.texto = Texto(class_instance.cena, tit=tit, txt=txt, **kwars)
@@ -780,21 +828,21 @@ class Texto(Popup):
                 return class_instance
 
             return decorate
+
         return _texto
 
 
 class Point(list):
-
     def __init__(self, x, y):
         super().__init__([x, y])
         self.x, self.y = x, y
         self.__iadd__, self.__isub__ = self.__radd__, self.__rsub__
 
     def __sub__(self, other):
-        return Point(self.x-other.x, self.y-other.y)
+        return Point(self.x - other.x, self.y - other.y)
 
     def __add__(self, other):
-        return Point(self.x+other.x, self.y+other.y)
+        return Point(self.x + other.x, self.y + other.y)
 
     def __radd__(self, other):
         print("__radd__(self, {other})".format(other=other))
@@ -821,7 +869,6 @@ class Point(list):
 
 
 class Cursor:
-
     def __init__(self, alvo, cena=DOC_PYDIV):
         self.alvo, self.cena, self.ponto = alvo, cena, None
         outer = self
@@ -858,12 +905,11 @@ class Cursor:
             def mouse_move(self, ev):
                 pass
 
-            def mouse_up(self, ev):
+            def mouse_up(self, _):
                 outer.cursor = outer.noop
-                st  = self.outer.elt.style
-                width, height, left, top = st.width, st.minHeight, st.left, st.top
-                self.outer.elt.title = CURSOR_ELEMENT.format(left, top, width, height)
-
+                st = self.outer.elt.style
+                width_, height_, left_, top_ = st.width, st.minHeight, st.left, st.top
+                self.outer.elt.title = CURSOR_ELEMENT.format(left_, top_, width_, height_)
 
         class Move(Noop):
             def mouse_move(self, ev):
@@ -927,9 +973,9 @@ class Cursor:
         print("dim left, top = ", dims)
         dims = [_strip_kind(dm) for dm in dims]
         top, height, left, width = dims
-        #left, top = left + width//2 - 30, top + height//2 - 30
+        # left, top = left + width//2 - 30, top + height//2 - 30
         cstyle = CURSOR_STYLE
-        cstyle = cstyle.format(width, height,  height, left, top)
+        cstyle = cstyle.format(width, height, height, left, top)
         print("cstyle = ", cstyle)
         cstyle = {k.strip(): v for k, v in (tp.split(":") for tp in cstyle.replace("\n", "").split(", ") if tp)}
         style.update(**cstyle)
@@ -986,8 +1032,8 @@ class Dragger:
     @staticmethod
     def mouse_over(ev):
         obj = ev.target
-        dx, dy, x, y = obj.w, obj.h, ev.x-obj.offsetLeft, ev.y-obj.offsetTop
-        quadrante = dy//y*3 + dx//x
+        dx, dy, x, y = obj.w, obj.h, ev.x - obj.offsetLeft, ev.y - obj.offsetTop
+        quadrante = dy // y * 3 + dx // x
         ev.target.style.cursor = Dragger.POINTER[quadrante]
 
     def drag_start(self, ev):
@@ -1006,18 +1052,18 @@ class Dragger:
 
         pass
 
-    def pre_mouse_up(self, ev):
+    def pre_mouse_up(self, _):
         self._mouse_over = self.mouse_over
         self._mouse_move = self.no_mouse_move
         self._mouse_down = self.mouse_down
         pass
 
-    def _mouse_up_(self, ev):
+    def _mouse_up_(self, _):
         self._mouse_over = self.mouse_over
         self._mouse_down = self.mouse_down
         self._mouse_up = self.mouse_up
 
-    def mouse_up(self, ev):
+    def mouse_up(self, _):
         self._mouse_over = self.pre_mouse_over
         self._mouse_down = self.pre_mouse_down
         self._mouse_up = self.pre_mouse_up
@@ -1028,9 +1074,9 @@ class Dragger:
 
     def pre_mouse_move(self, ev):
         obj = ev.target
-        dx, dy, x, y = obj.w, obj.h, ev.x-obj.offsetLeft, ev.y-obj.offsetTop
-        self.dragger.x = ev.x-x
-        self.dragger.y = ev.y-y
+        dx, dy, x, y = obj.w, obj.h, ev.x - obj.offsetLeft, ev.y - obj.offsetTop
+        self.dragger.x = ev.x - x
+        self.dragger.y = ev.y - y
         pass
 
 
@@ -1193,7 +1239,11 @@ def main():
 
 
 if "__main__" in __name__:
-    main()
+    print("runnin tests")
+    import doctest
+
+    doctest.testmod()
+    # main()
 
 CSS = '''
 h1 {

@@ -123,7 +123,7 @@ class Note:
     def implanta_livro_de_notas(self):
         print("implanta_livro_de_notas", self.papel.img)
         from _spy.vitollino.vitollino import Cursor
-        # Cursor(self.papel.elt)
+        Cursor(self.papel.elt)
         self.papel.entra(self.cena)
 
     def pega_papel(self, _=0):
