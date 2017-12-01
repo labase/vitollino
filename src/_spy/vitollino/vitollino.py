@@ -17,7 +17,14 @@
 # Você deve ter recebido uma cópia da Licença Pública Geral GNU
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
 """
-Gerador de labirintos e jogos tipo 'novel'.
+.. module:: Vitollino
+   :platform: Web
+   :synopsis: Gerador de labirintos e jogos tipo *'novel'*.
+
+.. moduleauthor:: Carlo Oliveira <carlo@ufrj.br>
+
+Gerador de labirintos e jogos tipo *'novel'*.
+
 """
 import json
 
@@ -55,7 +62,7 @@ ZSTYLE = {'position': "absolute", 'width': "10%", 'margin': "0%",
           "min-height": "10%", "cursor": "zoom-in"}
 
 
-class PATTERN:
+class _PATTERN:
     NOOP = {k.strip(): v for k, v in (tp.split(":") for tp in """""".replace("\n", "").split(";") if tp)}
     STARRY = {k.strip(): v for k, v in (tp.split(":") for tp in """background-color:black; opacity:0.4;
     background-image:
@@ -128,12 +135,6 @@ def singleton(class_):
     return getinstance
 
 
-""" Representa um evento vazio.
-
-    >>> ev = NoEv()
-    >>> print(ev.x, ev.y)
-    -100 -101
-"""
 @singleton
 class NoEv:
     """ Representa um evento vazio.
@@ -142,7 +143,7 @@ class NoEv:
 
         >>> ev = NoEv()
         >>> print(ev.x, ev.y)
-        -100 -101
+        -100 -100
     """
     x = -100
     y = -100
@@ -192,21 +193,15 @@ class Musica(object):
         document.body <= self.sound
 
 
-@singleton
 class Inventario:
     """
     Os objetos que estão de posse do jogador.
 
-    .. doctest::
-
-        >>> inv = Inventario()
-        >>> inv.bota("uma_coisa")
-        >>> "uma_coisa" in inv.dentro
-        True
 
     :param tela: Div do HTML onde o inventário será anexado
     """
-    GID = "00000000000000000000"
+    """# Usado para definir um jogador no modo multiusuário"""
+    GID = "00000000000000000000"  # Usado para definir um jogador no modo multiusuário
 
     def __init__(self, tela=DOC_PYDIV):
         self.tela = tela
@@ -251,9 +246,8 @@ class Inventario:
 
         .. doctest::
 
-            >>> inv = Inventario()
             >>> inv.bota("uma_coisa")
-            >>> "uma_coisa" in inv.dentro
+            >>> "uma_coisa" in inv.inventario
             True
 
         :param nome_item: Div do HTML onde o inventário será anexado
@@ -891,7 +885,7 @@ class Cursor:
                 return cur_style
 
             def next(self, ev):
-                ev.target.style = self.update_style("move", PATTERN.BCROSS)
+                ev.target.style = self.update_style("move", _PATTERN.BCROSS)
                 outer.current = outer.move
 
             def mouse_over(self, ev):
@@ -924,7 +918,7 @@ class Cursor:
 
             def next(self, ev):
                 print("next resize")
-                ev.target.style = self.update_style("grab", PATTERN.BOKEH)
+                ev.target.style = self.update_style("grab", _PATTERN.BOKEH)
                 outer.current = outer.resize
 
         class Resize(Noop):
@@ -944,7 +938,7 @@ class Cursor:
 
             def next(self, ev):
                 print("next noop")
-                ev.target.style = self.update_style("default", PATTERN.STARRY)
+                ev.target.style = self.update_style("default", _PATTERN.STARRY)
                 outer.current = outer.noop
 
         def next_state(ev):
@@ -979,7 +973,7 @@ class Cursor:
         print("cstyle = ", cstyle)
         cstyle = {k.strip(): v for k, v in (tp.split(":") for tp in cstyle.replace("\n", "").split(", ") if tp)}
         style.update(**cstyle)
-        style.update(**PATTERN.STARRY)
+        style.update(**_PATTERN.STARRY)
         self.style = style
         self.elt = html.DIV(Id="__cursor__", style=style, title="")
         self.cena <= self.elt
@@ -1242,7 +1236,9 @@ if "__main__" in __name__:
     print("runnin tests")
     import doctest
 
-    doctest.testmod()
+    doctest.testmod(extraglobs={
+        'inv': Inventario(),
+        "ev": NoEv()})
     # main()
 
 CSS = '''
