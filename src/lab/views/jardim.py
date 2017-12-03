@@ -17,15 +17,24 @@
 # Você deve ter recebido uma cópia da Licença Pública Geral GNU
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
 """
-Gerador de labirintos e jogos tipo *novel*.
 
-`Vitollino em Github <https://github.com/carlotolla/vitollino>`_
+ROTEIRO DO GAME JARDIM RADICAL.
+=====================================
 
-ROTEIRO DO GAME JARDIM RADICAL
+.. module:: JardimRadical
+   :platform: Web
+   :synopsis: Aventura no Jardim Botânico.
+
+.. moduleauthor:: Carlo Oliveira <carlo@ufrj.br>
+
+Gerador de labirintos e jogos tipo *'novel'*.
+
 
 Sequência de forma lógica para o funcionamento do jogo, ou seja, “costurar” as histórias das cenas.
 
-.. author Carlo Oliveira
+.. seealso::
+    `Vitollino em Github <https://github.com/carlotolla/vitollino>`_
+
 """
 from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena
 from _spy.vitollino.vitollino import JOGO

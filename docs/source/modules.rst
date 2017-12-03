@@ -1,19 +1,19 @@
-.. _modulos_vitollino:
+.. _modulos_flying:
+
 
 ##############################
-Vitollino - Módulos Principais
+Vitollino - Jogo de Novelas
 ##############################
 
-Gerador de Labirintos
-=====================
+Vitollino
+=========
 
 .. automodule:: _spy.vitollino.vitollino
     :members:
     :undoc-members:
     :show-inheritance:
     :platform: Web
-    :synopsis: Criação de jogos tipo 'novel'.
-
+    :synopsis: Criação de Jogos no Modelo Novela.
 
 .. note::
    Biblioteca Cliente para Jogos.

@@ -19,11 +19,20 @@
 # Você deve ter recebido uma cópia da Licença Pública Geral GNU
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
 """
-Gerador de labirintos e jogos tipo *novel*
+
+Treinamento de Manuseio de Alimentos.
+=====================================
+
+.. module:: Marcela
+   :platform: Web
+   :synopsis: Treinamento de Manuseio de Alimentos.
+
+.. moduleauthor:: Carlo Oliveira <carlo@ufrj.br>
+
+Gerador de labirintos e jogos tipo *'novel'*.
 
 `Vitollino em Github <https://github.com/carlotolla/vitollino>`_
 
-.. author Carlo Oliveira
 """
 from _spy.vitollino.vitollino import STYLE, INVENTARIO, Cena
 from _spy.vitollino.vitollino import JOGO

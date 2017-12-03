@@ -17,17 +17,25 @@
 # Você deve ter recebido uma cópia da Licença Pública Geral GNU
 # junto com este programa, se não, veja em <http://www.gnu.org/licenses/>
 """
+
+Gerador de labirintos e jogos tipo *'novel'*.
+=============================================
+
 .. module:: Vitollino
    :platform: Web
    :synopsis: Gerador de labirintos e jogos tipo *'novel'*.
 
 .. moduleauthor:: Carlo Oliveira <carlo@ufrj.br>
 
+
 Gerador de labirintos e jogos tipo *'novel'*.
+
+.. seealso::
+
+`Vitollino em Github <https://github.com/carlotolla/vitollino>`_
 
 """
 import json
-
 from browser import document, html
 from browser import window as win
 from browser import ajax
@@ -115,6 +123,8 @@ class _PATTERN:
 
 # INVENTARIO = None
 
+from functools import WRAPPER_ASSIGNMENTS
+
 
 def parametrized(dec):
     def layer(*args, **kwargs):
@@ -126,27 +136,82 @@ def parametrized(dec):
     return layer
 
 
-def singleton(class_):
-    def getinstance(*args, **kwargs):
-        if not getattr(class_, "__INSTANCE__", None):
-            class_.__INSTANCE__ = class_(*args, **kwargs)
-        return class_.__INSTANCE__
+def wraps_class_to_mimic_wrapped(original_cls):
+    """
+    Empacota uma classe decoradora para que apareça corretamente nos documentos.
 
-    return getinstance
+    .. doctest ::
+
+        >>> @wraps_class_to_mimic_wrapped
+        ... class Exemplo:
+        ...     ...
+        ...
+        >>> print(Exemplo.__doc__)
+        Atualiza wrapper_cls para se assemelhar à classe original_cls.
+        <BLANKLINE>
+
+    :param original_cls: A Classe a ser empacotada
+    :return: O empacotador da classe
+    """
+    def wrapper(wrapper_cls):
+        """Atualiza wrapper_cls para se assemelhar à classe original_cls.
+        """
+        _ = [setattr(wrapper_cls, attr, getattr(original_cls, attr))
+             for attr in WRAPPER_ASSIGNMENTS if hasattr(original_cls, attr)]
+        return wrapper_cls
+    return wrapper
+
+
+def singleton(cls_to_decorate):
+    """
+    Decora um classe para ser um singleton e retornar sempre a mesma instância.
+
+    >>> @singleton
+    ... class Mono:
+    ...     def __init__(self):
+    ...             self.x = 0
+    ...
+    >>> Mono().x, Mono().x = 1, 2
+    >>> print(Mono().x == Mono().x, Mono().x)
+    True 2
+
+    :param cls_to_decorate: A classe para ser definida como singleton
+    :return: O decorador de singleton
+    """
+    instance = cls_to_decorate()
+    @wraps_class_to_mimic_wrapped(cls_to_decorate)
+    class Singletoner(cls_to_decorate):
+        def __init__(self):
+            super().__init__()
+            self.wrapped = cls_to_decorate
+            Singletoner.__doc__ = cls_to_decorate.__doc__
+            Singletoner.__repr__ = cls_to_decorate.__repr__
+
+        def __new__(cls, *args, **kwargs):
+            return instance
+
+        def __call__(self, *args, **kwargs):
+            return instance
+
+        def __repr__(self):
+            return repr(cls_to_decorate)
+    return Singletoner
 
 
 @singleton
 class NoEv:
     """ Representa um evento vazio.
 
-    .. doctests::
+    .. doctest::
 
-        >>> ev = NoEv()
         >>> print(ev.x, ev.y)
         -100 -100
     """
     x = -100
     y = -100
+
+    def __repr__(self):
+        return "<NoEvent>"
 
     def __init__(self):
         self.x = -100
@@ -158,6 +223,20 @@ class NoEv:
 
 @singleton
 class SalaCenaNula:
+    """
+    Define uma Sala ou uma Cena vazia.
+
+    .. doctest::
+
+        >>> cena = Cena(SalaCenaNula())  # A próxima cena
+        >>> uma_cena = Cena(SalaCenaNula(), cena)  # Cena nula à esquerda, proxima no meio
+        >>> uma_cena.vai_esquerda()  # tenta navegar para a cena à esquerda
+        >>> # não vai, pois a cena é nula e não deixa que se navegue para ela
+        >>> print(INVENTARIO.cena == cena)
+        True
+
+    Deve ser usado quando um parâmetro requer uma cena mas não deve ter uma cena válida ali.
+    """
     def __init__(self):
         self.esquerda, self.direita = [None] * 2
         self.salas = [None] * 5
@@ -166,6 +245,9 @@ class SalaCenaNula:
         self.nome = "_NO_NAME_"
         self.init = self.init
         self.centro, self.norte, self.leste, self.sul, self.oeste = self.salas
+
+    def __repr__(self):
+        return "<CenaNula>"
 
     def init(self):
         self.init = lambda _=0, s=self: self
@@ -218,6 +300,9 @@ class Inventario:
         self.mostra()
         tela <= self.elt
 
+    def __repr__(self):
+        return "Inventario"
+
     def __le__(self, other):
         if hasattr(other, 'elt'):
             self.elt <= other.elt
@@ -250,9 +335,9 @@ class Inventario:
             >>> "uma_coisa" in inv.inventario
             True
 
-        :param nome_item: Div do HTML onde o inventário será anexado
-        :param item: Div do HTML onde o inventário será anexado
-        :param acao: Div do HTML onde o inventário será anexado
+        :param nome_item: uma string com o nome do item, ele será criado e colocado no inventário
+        :param item: URL da imagem do item nomeado por nome_item
+        :param acao: ação associada com o item nomeado quando ele é clicado
         """
         if isinstance(nome_item, str):
             item_img = html.IMG(Id=nome_item, src=item, width=30, style=EIMGSTY)
@@ -270,8 +355,8 @@ class Inventario:
 
     def tira(self, nome_item):
         item_img = document[nome_item]
-        self.inventario.pop(nome_item, None)
         self.limbo <= item_img
+        return self.inventario.pop(nome_item, None)
 
     def score(self, casa, carta, move, ponto, valor):
         data = dict(doc_id=INVENTARIO.GID, carta=carta, casa=casa, move=move, ponto=ponto, valor=valor,
@@ -742,6 +827,9 @@ class Popup:
                 div <= a
                 div <= self.alt
 
+            def __repr__(self):
+                return "<Popup>"
+
             def _close(self, *_):
                 self.popup.style = {"visibility": "hidden", "opacity": 0}
                 self.esconde()
@@ -795,7 +883,7 @@ class Texto(Popup):
         self.elt = Popup.POP.popup
         cena <= self
 
-    def esconde(self, ev=NoEv):
+    def esconde(self, ev=NoEv()):
         ...
 
     def mostra(self, tit="", txt="", **kwargs):
@@ -803,7 +891,7 @@ class Texto(Popup):
         Popup.POP.esconde = self.esconde
         pass
 
-    def vai(self, ev=NoEv):
+    def vai(self, ev=NoEv()):
         Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
         Popup.POP.esconde = self.esconde
         pass
@@ -1208,12 +1296,12 @@ class Bloco:
 
 class Jogo:
     def __init__(self):
-        self.cena = self.c = Cena
-        self.quarto = self.q = Sala
+        self.c = Cena
+        self.q = Sala
         self.salao = self.s = Salao
-        self.algo = self.a = Elemento
+        self.a = Elemento
         self.texto = self.t = Popup
-        self.nota = self.n = Texto
+        self.n = Texto
         self.labirinto = self.l = Labirinto
         self.inventario = self.i = INVENTARIO
         self.portal = self.p = Portal
@@ -1221,6 +1309,31 @@ class Jogo:
         self.droppable = self.r = Droppable
         self.musica = self.m = Musica
         pass
+
+    @property
+    def cena(self):
+        """ Acessa a classe Cena"""
+        return Cena
+
+    @property
+    def quarto(self):
+        """ Acessa a classe Sala"""
+        return Sala
+
+    @property
+    def sala(self):
+        """ Acessa a classe Salao"""
+        return Salao
+
+    @property
+    def algo(self):
+        """ Acessa a classe Elemento"""
+        return Elemento
+
+    @property
+    def nota(self):
+        """ Acessa a classe Texto"""
+        return Texto
 
 
 JOGO = Jogo()
@@ -1236,9 +1349,15 @@ if "__main__" in __name__:
     print("runnin tests")
     import doctest
 
-    doctest.testmod(extraglobs={
-        'inv': Inventario(),
-        "ev": NoEv()})
+    doctest.testmod(globs=dict(
+        inv=Inventario(),
+        ev= NoEv(),
+        Cena= Cena,
+        SalaCenaNula= SalaCenaNula,
+        INVENTARIO=INVENTARIO,
+        wraps_class_to_mimic_wrapped=wraps_class_to_mimic_wrapped,
+        singleton=singleton
+    ))
     # main()
 
 CSS = '''

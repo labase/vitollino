@@ -16,6 +16,9 @@ class BrythonMock:
 
         self.IMG = b
 
+
+    def __repr__(self):
+        return "Objeto DOM"
     def __getitem__(self, item):
         return self
 

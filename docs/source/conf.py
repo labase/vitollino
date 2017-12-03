@@ -22,6 +22,10 @@ sys.path.insert(0, os.path.abspath('../../tests/'))
 from _spy import __version__
 import cloud_sptheme as csp
 
+def skip(app, what, name, obj, skip, options):
+    if name.endswith("_"):
+        return False
+    return skip
 # ... some contents omitted ...
 
 # set the html theme
