@@ -22,6 +22,10 @@ sys.path.insert(0, os.path.abspath('../../tests/'))
 from _spy import __version__
 import cloud_sptheme as csp
 
+def skip(app, what, name, obj, skip, options):
+    if name.endswith("_"):
+        return False
+    return skip
 # ... some contents omitted ...
 
 # set the html theme
@@ -42,7 +46,8 @@ html_theme_options = { "roottarget": "index" }
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.viewcode']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.viewcode',
+              'sphinx.ext.doctest', 'cloud_sptheme.ext.autodoc_sections']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

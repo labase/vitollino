@@ -11,6 +11,15 @@ Na verdade vamos usar o Brython que é o Python que funciona dentro de um navega
 
 .. image:: /_static/PPFC.jpg
 
+Manual
+======
+
+.. toctree::
+    :maxdepth: 3
+
+    manual_vitollino.rst
+    auxiliares_vitollino.rst
+
 Tutorial
 ========
 
@@ -18,15 +27,25 @@ Tutorial
     :maxdepth: 2
 
     marcela.rst
+    jardim.rst
     vito_a.rst
 
 Desenvolvimento
 ===============
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     intro.rst
+    modules.rst
+
+
+Lançamentos
+===============
+
+.. toctree::
+    :maxdepth: 1
+
     release1_1_0.rst
     release1_0_0.rst
     release0_0_0.rst

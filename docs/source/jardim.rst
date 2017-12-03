@@ -1,29 +1,28 @@
-.. _modulos_marcela:
-
+.. _modulos_jardim:
 
 ###########################
-Vitollino - Jogo da Marcela
+Vitollino - Jardim Radical
 ###########################
 
-Treinamento de Manuseio Alimentar
+Aventura no Jardim Botânico
 =================================
 
 .. seealso::
 
     =========== ===========================================
-    Jardim      :ref:`modulos_jardim`
+    Marcela     :ref:`modulos_marcela`
 
     Vitollino   :ref:`vito_a`
     =========== ===========================================
 
-.. automodule:: lab.views.marcela
+.. automodule:: lab.views.jardim
     :members:
     :undoc-members:
     :private-members:
     :show-inheritance:
     :platform: Web
-    :synopsis: Criação de jogos tipo *novel*.
+    :synopsis: Aventura no Jardim Botânico.
 
 .. note::
-   Ambiente de treinamento para manuseio alimentar.
+   Aventura no Jardim Botânico.
 

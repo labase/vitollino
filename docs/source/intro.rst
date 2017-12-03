@@ -102,4 +102,3 @@ Funcionalidades Documentadas:
     :maxdepth: 2
 
     modules.rst
-    release1_0_0.rst
