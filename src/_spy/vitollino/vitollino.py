@@ -880,18 +880,24 @@ class Popup:
 class Texto(Popup):
     def __init__(self, cena=NADA, tit="", txt="", **kwargs):
         super().__init__(None, tit=tit, txt=txt, vai=None, **kwargs)
-        self.elt = Popup.POP.popup
-        cena <= self
+        #self.elt = Popup.POP.popup
+        self.cena = cena
+        #cena <= self
 
     def esconde(self, ev=NoEv()):
         ...
 
     def mostra(self, tit="", txt="", **kwargs):
+        self.elt = Popup.POP.popup
+        self.cena.elt <= self.elt
         Popup.POP.mostra(lambda *_: None, tit=tit, txt=txt, **kwargs)
+        
         Popup.POP.esconde = self.esconde
         pass
 
     def vai(self, ev=NoEv()):
+        # self.elt = Popup.POP.popup
+        self.cena.elt <= Popup.POP.popup
         Popup.POP.mostra(lambda *_: None, self.tit, self.txt)
         Popup.POP.esconde = self.esconde
         pass
