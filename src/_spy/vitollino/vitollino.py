@@ -416,7 +416,7 @@ class Elemento:
         self.opacity = 0
         self.style = dict(**PSTYLE)
         # self.style["min-width"], self.style["min-height"] = w, h
-        self.style.update(style)
+        self.style.update(**style)
         self.elt = html.DIV(Id=tit, style=self.style)
         self.xy = (-111, -111)
         self.scorer = dict(ponto=1, valor=cena.nome, carta=tit or img, casa=self.xy, move=None)
